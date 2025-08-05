@@ -1,0 +1,31 @@
+{
+  "name": "roomscout-ai",
+  "version": "1.0.0",
+  "description": "RoomScout AI - Northeastern University Housing Assistant",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "nodemon server/server.js",
+    "client": "cd client && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "install-all": "npm install && cd client && npm install",
+    "setup": "npm run install-all"
+  },
+  "keywords": [
+    "housing",
+    "northeastern",
+    "ai",
+    "chatbot"
+  ],
+  "author": "RoomScout AI Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "uuid": "^11.1.0"
+  }
+}

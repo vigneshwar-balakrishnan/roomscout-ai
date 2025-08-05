@@ -1,0 +1,309 @@
+/* Northeastern University Theme Styles */
+
+:root {
+  --neu-red: #C8102E;
+  --neu-black: #000000;
+  --neu-white: #FFFFFF;
+  --neu-gray: #F5F5F5;
+  --neu-dark-gray: #333333;
+  --neu-light-gray: #E8E8E8;
+  --neu-accent: #FF6B35;
+}
+
+/* Global Styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--neu-gray);
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Northeastern Branding */
+.neu-header {
+  background: linear-gradient(135deg, var(--neu-red) 0%, #A00020 100%);
+  color: var(--neu-white);
+  box-shadow: 0 2px 8px rgba(200, 16, 46, 0.3);
+}
+
+.neu-logo {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--neu-white);
+  text-decoration: none;
+}
+
+.neu-logo:hover {
+  color: var(--neu-white);
+  opacity: 0.9;
+}
+
+/* Card Styles */
+.neu-card {
+  background: var(--neu-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--neu-light-gray);
+  transition: all 0.3s ease;
+}
+
+.neu-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Button Styles */
+.neu-button-primary {
+  background: var(--neu-red);
+  border-color: var(--neu-red);
+  color: var(--neu-white);
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.neu-button-primary:hover {
+  background: #A00020;
+  border-color: #A00020;
+  color: var(--neu-white);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(200, 16, 46, 0.3);
+}
+
+.neu-button-secondary {
+  background: var(--neu-white);
+  border-color: var(--neu-red);
+  color: var(--neu-red);
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.neu-button-secondary:hover {
+  background: var(--neu-red);
+  border-color: var(--neu-red);
+  color: var(--neu-white);
+  transform: translateY(-1px);
+}
+
+/* Form Styles */
+.neu-input {
+  border-radius: 6px;
+  border: 1px solid var(--neu-light-gray);
+  transition: all 0.3s ease;
+}
+
+.neu-input:focus {
+  border-color: var(--neu-red);
+  box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.2);
+}
+
+/* Navigation Styles */
+.neu-nav-item {
+  color: var(--neu-white);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.neu-nav-item:hover {
+  color: var(--neu-white);
+  opacity: 0.8;
+}
+
+.neu-nav-item.active {
+  color: var(--neu-white);
+  font-weight: 600;
+  border-bottom: 2px solid var(--neu-white);
+}
+
+/* Chat Styles */
+.chat-container {
+  background: var(--neu-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.chat-input-container {
+  border-top: 1px solid var(--neu-light-gray);
+  padding: 16px;
+  background: var(--neu-white);
+}
+
+/* Housing Card Styles */
+.housing-card {
+  background: var(--neu-white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.housing-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.housing-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.housing-content {
+  padding: 16px;
+}
+
+.housing-price {
+  color: var(--neu-red);
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.housing-location {
+  color: var(--neu-dark-gray);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+/* Loading Spinner */
+.neu-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.neu-spinner {
+  color: var(--neu-red);
+}
+
+/* Alert Styles */
+.neu-alert-success {
+  border-color: #52c41a;
+  background: #f6ffed;
+}
+
+.neu-alert-error {
+  border-color: #ff4d4f;
+  background: #fff2f0;
+}
+
+.neu-alert-warning {
+  border-color: #faad14;
+  background: #fffbe6;
+}
+
+.neu-alert-info {
+  border-color: #1890ff;
+  background: #f0f9ff;
+}
+
+/* Footer Styles */
+.neu-footer {
+  background: var(--neu-black);
+  color: var(--neu-white);
+  padding: 24px 0;
+  margin-top: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 16px;
+  }
+  
+  .neu-card {
+    margin-bottom: 16px;
+  }
+  
+  .chat-container {
+    height: 500px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px;
+  }
+  
+  .neu-logo {
+    font-size: 1.2rem;
+  }
+}
+
+/* Animation Classes */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neu-light-gray);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neu-red);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A00020;
+} 
