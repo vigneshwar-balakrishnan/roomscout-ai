@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Button, Upload, Typography, Space, Card, Avatar, Spin, Alert } from 'antd';
-import { SendOutlined, UploadOutlined, RobotOutlined, UserOutlined, FileTextOutlined } from '@ant-design/icons';
+import { SendOutlined, UploadOutlined, RobotOutlined, FileTextOutlined } from '@ant-design/icons';
 import ChatMessage from './ChatMessage';
 import QuickActions from './QuickActions';
 import { useAuth } from '../../contexts/AuthContext';
@@ -21,7 +21,6 @@ const ChatInterface = () => {
     const [uploadStatus, setUploadStatus] = useState(null);
     const [sessionId, setSessionId] = useState(null);
     const messagesEndRef = useRef(null);
-    const fileInputRef = useRef(null);
 
     // Initialize chat session
     useEffect(() => {
@@ -63,7 +62,7 @@ const ChatInterface = () => {
             socket.off('typing');
             socket.off('upload_progress');
         };
-    }, [socket]);
+    }, []);
 
     // Auto-scroll to bottom when new messages arrive
     useEffect(() => {
@@ -175,6 +174,40 @@ const ChatInterface = () => {
                 };
 
                 setMessages(prev => [...prev, successMessage]);
+
+                // Display extracted housing listings
+                if (response.data.result.housingListings && response.data.result.housingListings.length > 0) {
+                    response.data.result.housingListings.forEach((listing, index) => {
+                        const listingMessage = {
+                            id: `listing_${Date.now()}_${index}`,
+                            type: 'listing',
+                            content: `🏠 **Housing Listing ${index + 1}**\n\n` +
+                                (listing.location ? `📍 **Location**: ${listing.location}\n` : '') +
+                                (listing.price ? `💰 **Price**: ${listing.price}\n` : '') +
+                                (listing.roomType ? `🏘️ **Type**: ${listing.roomType}\n` : '') +
+                                (listing.availability ? `📅 **Available**: ${listing.availability}\n` : '') +
+                                (listing.contact ? `📞 **Contact**: ${listing.contact}\n` : '') +
+                                (listing.amenities ? `✨ **Amenities**: ${listing.amenities}\n` : '') +
+                                (listing.confidence ? `🎯 **Confidence**: ${Math.round(listing.confidence * 100)}%\n` : ''),
+                            timestamp: new Date(),
+                            sender: 'RoomScout AI',
+                            listing: listing,
+                            canSave: true
+                        };
+                        setMessages(prev => [...prev, listingMessage]);
+                    });
+                } else {
+                    // Add a message if no listings were extracted
+                    const noListingsMessage = {
+                        id: `no_listings_${Date.now()}`,
+                        type: 'info',
+                        content: 'No detailed housing listings were extracted from this file. The messages may contain general housing discussions without specific listing details.',
+                        timestamp: new Date(),
+                        sender: 'system'
+                    };
+                    setMessages(prev => [...prev, noListingsMessage]);
+                }
+
                 setUploadStatus(null);
             } else {
                 const errorMessage = {
@@ -223,11 +256,28 @@ const ChatInterface = () => {
     };
 
     return (
-        <Layout className="chat-layout">
-            <Content className="chat-content">
-                <Card className="chat-card">
+        <Layout className="chat-layout" style={{ background: '#FFFFFF' }}>
+            <Content className="chat-content" style={{ padding: '24px' }}>
+                <Card 
+                    className="chat-card"
+                    style={{
+                        borderRadius: '12px',
+                        border: '1px solid #E5E7EB',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                        background: '#FFFFFF',
+                        height: 'calc(100vh - 48px)',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}
+                    bodyStyle={{ 
+                        padding: '24px',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}
+                >
                     {/* Chat Header */}
-                    <div className="chat-header">
+                    <div className="chat-header" style={{ marginBottom: '24px' }}>
                         <Space align="center">
                             <Avatar 
                                 icon={<RobotOutlined />} 
@@ -235,10 +285,10 @@ const ChatInterface = () => {
                                 size="large"
                             />
                             <div>
-                                <Title level={4} style={{ margin: 0, color: '#C8102E' }}>
+                                <Title level={4} style={{ margin: 0, color: '#374151', fontWeight: 600 }}>
                                     RoomScout AI
                                 </Title>
-                                <Text type="secondary">
+                                <Text style={{ color: '#6B7280' }}>
                                     Housing Assistant
                                 </Text>
                             </div>
@@ -249,7 +299,18 @@ const ChatInterface = () => {
                     <QuickActions onAction={handleQuickAction} />
 
                     {/* Messages Container */}
-                    <div className="messages-container">
+                    <div 
+                        className="messages-container"
+                        style={{
+                            flex: 1,
+                            overflowY: 'auto',
+                            marginBottom: '24px',
+                            padding: '16px',
+                            background: '#F9FAFB',
+                            borderRadius: '8px',
+                            border: '1px solid #E5E7EB'
+                        }}
+                    >
                         {messages.map((message) => (
                             <ChatMessage 
                                 key={message.id} 
@@ -276,7 +337,7 @@ const ChatInterface = () => {
                         {isProcessing && (
                             <div className="processing-indicator">
                                 <Spin size="small" />
-                                <Text type="secondary">Processing...</Text>
+                                <Text style={{ color: '#6B7280', marginLeft: '8px' }}>Processing...</Text>
                             </div>
                         )}
 
@@ -290,6 +351,7 @@ const ChatInterface = () => {
                             type={uploadStatus.status === 'uploading' ? 'info' : 'success'}
                             showIcon
                             className="upload-status"
+                            style={{ marginBottom: '16px' }}
                         />
                     )}
 
@@ -307,7 +369,11 @@ const ChatInterface = () => {
                                 <Button 
                                     icon={<UploadOutlined />}
                                     size="large"
-                                    style={{ borderColor: '#d9d9d9' }}
+                                    style={{ 
+                                        borderColor: '#D1D5DB',
+                                        backgroundColor: '#FFFFFF',
+                                        color: '#374151'
+                                    }}
                                 >
                                     Upload
                                 </Button>
@@ -323,7 +389,8 @@ const ChatInterface = () => {
                                 style={{ 
                                     borderTopLeftRadius: 0,
                                     borderBottomLeftRadius: 0,
-                                    resize: 'none'
+                                    resize: 'none',
+                                    borderColor: '#D1D5DB'
                                 }}
                             />
                             
@@ -346,8 +413,8 @@ const ChatInterface = () => {
                     </div>
 
                     {/* File Upload Hint */}
-                    <div className="upload-hint">
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                    <div className="upload-hint" style={{ marginTop: '12px', textAlign: 'center' }}>
+                        <Text style={{ color: '#9CA3AF', fontSize: '12px' }}>
                             <FileTextOutlined /> Supported formats: WhatsApp .txt files, CSV, JSON
                         </Text>
                     </div>

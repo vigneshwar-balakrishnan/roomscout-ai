@@ -1,17 +1,16 @@
 import React from 'react';
-import { Button, Space, Typography } from 'antd';
+import { Typography, Card } from 'antd';
 import { 
     HomeOutlined, 
-    SearchOutlined, 
     UploadOutlined, 
-    QuestionCircleOutlined,
     DollarOutlined,
     EnvironmentOutlined,
-    TeamOutlined
+    TeamOutlined,
+    BulbOutlined
 } from '@ant-design/icons';
 import './QuickActions.css';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const QuickActions = ({ onAction }) => {
     const quickActions = [
@@ -19,43 +18,55 @@ const QuickActions = ({ onAction }) => {
             key: 'find-housing',
             icon: <HomeOutlined />,
             label: 'Find Housing',
-            prompt: 'I\'m looking for housing near Northeastern University. What options do you recommend?',
-            color: '#C8102E'
-        },
-        {
-            key: 'upload-whatsapp',
-            icon: <UploadOutlined />,
-            label: 'Upload WhatsApp',
-            prompt: 'I have a WhatsApp chat file with housing messages. Can you help me extract housing listings from it?',
-            color: '#1890ff'
+            description: 'Discover available listings',
+            prompt: 'Show me the best housing options near Northeastern University. I\'m looking for apartments or rooms that are close to campus and within my budget.',
+            gradient: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+            iconColor: '#ffffff'
         },
         {
             key: 'budget-options',
             icon: <DollarOutlined />,
             label: 'Budget Options',
-            prompt: 'What are the best housing options for students on a budget near NEU?',
-            color: '#52c41a'
+            description: 'Affordable student housing',
+            prompt: 'I\'m a student on a tight budget. Can you show me the most affordable housing options near Northeastern University? I need something under $2000 per month.',
+            gradient: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
+            iconColor: '#ffffff'
+        },
+        {
+            key: 'best-areas',
+            icon: <EnvironmentOutlined />,
+            label: 'Best Areas',
+            description: 'Top neighborhoods for students',
+            prompt: 'What are the best neighborhoods for Northeastern students? I want to know about safety, convenience, and student-friendly areas around campus.',
+            gradient: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)',
+            iconColor: '#ffffff'
         },
         {
             key: 'roommate-finder',
             icon: <TeamOutlined />,
             label: 'Find Roommates',
-            prompt: 'I\'m looking for roommates for next semester. How can I find compatible roommates?',
-            color: '#722ed1'
-        },
-        {
-            key: 'neighborhoods',
-            icon: <EnvironmentOutlined />,
-            label: 'Best Areas',
-            prompt: 'What are the best neighborhoods for students near Northeastern University?',
-            color: '#fa8c16'
+            description: 'Connect with potential roommates',
+            prompt: 'I\'m looking for roommates for next semester. Can you help me understand the roommate search process and what to look for in potential roommates?',
+            gradient: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+            iconColor: '#ffffff'
         },
         {
             key: 'housing-tips',
-            icon: <QuestionCircleOutlined />,
+            icon: <BulbOutlined />,
             label: 'Housing Tips',
-            prompt: 'What should I know about finding housing as a Northeastern student?',
-            color: '#13c2c2'
+            description: 'Expert advice for students',
+            prompt: 'I\'m new to finding housing in Boston. What are the most important things I should know about renting as a Northeastern student?',
+            gradient: 'linear-gradient(135deg, #06b6d4 0%, #22d3ee 100%)',
+            iconColor: '#ffffff'
+        },
+        {
+            key: 'upload-whatsapp',
+            icon: <UploadOutlined />,
+            label: 'Upload WhatsApp',
+            description: 'Extract listings from chat',
+            prompt: 'I have a WhatsApp chat file with housing messages. Can you help me extract and analyze housing listings from the chat?',
+            gradient: 'linear-gradient(135deg, #ef4444 0%, #f87171 100%)',
+            iconColor: '#ffffff'
         }
     ];
 
@@ -66,43 +77,66 @@ const QuickActions = ({ onAction }) => {
     };
 
     return (
-        <div className="quick-actions">
-            <div className="quick-actions-header">
-                <Text strong>Quick Actions</Text>
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                    Get started with common queries
-                </Text>
+        <div className="quick-actions-modern">
+            <div className="quick-actions-header-modern">
+                <div className="header-content">
+                    <Title level={4} style={{ margin: 0, color: '#1e3a8a', fontWeight: '700' }}>
+                        Quick Actions
+                    </Title>
+                    <Text style={{ color: '#6b7280', fontSize: '14px', fontWeight: '400' }}>
+                        Get started with common queries
+                    </Text>
+                </div>
+                <div className="header-decoration">
+                    <div className="decoration-dot" style={{ backgroundColor: '#1e3a8a' }}></div>
+                    <div className="decoration-dot" style={{ backgroundColor: '#3b82f6' }}></div>
+                    <div className="decoration-dot" style={{ backgroundColor: '#10b981' }}></div>
+                </div>
             </div>
             
-            <div className="quick-actions-grid">
-                {quickActions.map((action) => (
-                    <Button
+            <div className="quick-actions-grid-modern">
+                {quickActions.map((action, index) => (
+                    <Card
                         key={action.key}
-                        icon={action.icon}
-                        size="small"
+                        className="quick-action-card"
                         onClick={() => handleActionClick(action)}
+                        hoverable
                         style={{
-                            backgroundColor: action.color,
-                            borderColor: action.color,
-                            color: 'white',
-                            height: 'auto',
-                            padding: '8px 12px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '4px',
-                            borderRadius: '8px',
-                            minHeight: '60px'
+                            background: action.gradient,
+                            border: 'none',
+                            borderRadius: '16px',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s ease',
+                            position: 'relative',
+                            overflow: 'hidden'
                         }}
-                        className="quick-action-button"
                     >
-                        <div style={{ fontSize: '16px' }}>
-                            {action.icon}
+                        <div className="card-overlay"></div>
+                        <div className="card-content">
+                            <div className="action-icon" style={{ color: action.iconColor }}>
+                                {action.icon}
+                            </div>
+                            <div className="action-text">
+                                <Text style={{ 
+                                    color: action.iconColor, 
+                                    fontSize: '16px', 
+                                    fontWeight: '600',
+                                    display: 'block',
+                                    marginBottom: '4px'
+                                }}>
+                                    {action.label}
+                                </Text>
+                                <Text style={{ 
+                                    color: action.iconColor, 
+                                    fontSize: '12px',
+                                    opacity: 0.9
+                                }}>
+                                    {action.description}
+                                </Text>
+                            </div>
                         </div>
-                        <Text style={{ color: 'white', fontSize: '11px', textAlign: 'center' }}>
-                            {action.label}
-                        </Text>
-                    </Button>
+                        <div className="card-shine"></div>
+                    </Card>
                 ))}
             </div>
         </div>

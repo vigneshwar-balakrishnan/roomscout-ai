@@ -1,0 +1,183 @@
+.housing-card {
+  transition: all 0.2s ease;
+  background: #FFFFFF;
+}
+
+.housing-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.housing-card-content {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.housing-card-image {
+  flex-shrink: 0;
+}
+
+.housing-card-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.housing-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.housing-card-title-section {
+  flex: 1;
+}
+
+.housing-card-price {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.housing-card-property-details {
+  margin-bottom: 8px;
+}
+
+.housing-card-description {
+  line-height: 1.6;
+  color: #6B7280;
+}
+
+.housing-card-amenities {
+  margin-bottom: 12px;
+}
+
+.housing-card-neu-features {
+  margin-bottom: 12px;
+}
+
+.housing-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #F3F4F6;
+}
+
+.housing-card-meta {
+  display: flex;
+  align-items: center;
+}
+
+.housing-card-actions {
+  display: flex;
+  align-items: center;
+}
+
+/* Compact variant */
+.housing-card.compact .housing-card-content {
+  gap: 16px;
+}
+
+.housing-card.compact .housing-card-image img,
+.housing-card.compact .housing-card-image > div {
+  width: 200px;
+  height: 140px;
+}
+
+.housing-card.compact .housing-card-details {
+  gap: 12px;
+}
+
+.housing-card.compact .housing-card-header {
+  gap: 12px;
+}
+
+.housing-card.compact .housing-card-price {
+  font-size: 20px;
+}
+
+/* Extracted listings styling */
+.housing-card.extracted {
+  border-left: 4px solid #C8102E;
+}
+
+.housing-card.extracted .housing-card-title-section h4::before {
+  content: "🤖 ";
+  margin-right: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .housing-card-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .housing-card-image img,
+  .housing-card-image > div {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .housing-card-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .housing-card-price {
+    text-align: left;
+  }
+  
+  .housing-card-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .housing-card-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* Professional tag styling */
+.housing-card .ant-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Button styling */
+.housing-card .ant-btn {
+  border-radius: 6px;
+  font-weight: 500;
+  height: 36px;
+  padding: 0 16px;
+}
+
+.housing-card .ant-btn-primary {
+  background: #C8102E;
+  border-color: #C8102E;
+}
+
+.housing-card .ant-btn-primary:hover {
+  background: #A00020;
+  border-color: #A00020;
+}
+
+.housing-card .ant-btn-default {
+  background: #FFFFFF;
+  border-color: #D1D5DB;
+  color: #374151;
+}
+
+.housing-card .ant-btn-default:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+  color: #374151;
+} 

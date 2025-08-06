@@ -7,13 +7,21 @@ const http = require('http');
 const socketIo = require('socket.io');
 require('dotenv').config();
 
+// Import models to ensure they're registered
+require('./models');
+
 const authRoutes = require('./routes/auth');
 const housingRoutes = require('./routes/housing');
 const { router: chatRoutes } = require('./routes/chat');
 const uploadRoutes = require('./routes/upload');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 const server = http.createServer(app);
+
+// Trust proxy for rate limiting behind reverse proxy
+app.set('trust proxy', 1);
+
 const io = socketIo(server, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:3000",
@@ -22,10 +30,7 @@ const io = socketIo(server, {
 });
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/roomscout-ai', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/roomscout-ai')
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
 
@@ -54,6 +59,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/housing', housingRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

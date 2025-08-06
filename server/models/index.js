@@ -7,6 +7,7 @@ const Message = require('./Message');
 const Analytics = require('./Analytics');
 const LangChainSession = require('./LangChainSession');
 const UploadSession = require('./UploadSession');
+const ExtractedListing = require('./ExtractedListing');
 
 module.exports = {
   User,
@@ -17,5 +18,6 @@ module.exports = {
   Message,
   Analytics,
   LangChainSession,
-  UploadSession
+  UploadSession,
+  ExtractedListing
 }; 

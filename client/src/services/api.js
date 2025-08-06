@@ -160,11 +160,11 @@ export const chatAPI = {
     },
     timeout: 300000, // 5 minutes timeout for file processing
   }),
-  batchProcess: (messages) => api.post('/chat/batch-process', { messages }),
-  getChatHistory: (sessionId) => api.get(`/chat/sessions/${sessionId}`),
+  saveExtractedListing: (listingData) => api.post('/chat/save-extracted-listing', listingData),
+  getExtractedListings: () => api.get('/chat/extracted-listings'),
   getChatSessions: () => api.get('/chat/sessions'),
-  getChatHealth: () => api.get('/chat/health'),
-  validateSecurity: () => api.post('/chat/validate-security'),
+  getChatSession: (sessionId) => api.get(`/chat/session/${sessionId}`),
+  deleteChatSession: (sessionId) => api.delete(`/chat/session/${sessionId}`),
 };
 
 // Upload API endpoints
@@ -190,10 +190,12 @@ export const analyticsAPI = {
 // Notification API endpoints
 export const notificationAPI = {
   getNotifications: () => api.get('/notifications'),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
   markAsRead: (notificationId) => api.put(`/notifications/${notificationId}/read`),
   markAllAsRead: () => api.put('/notifications/read-all'),
   deleteNotification: (notificationId) => api.delete(`/notifications/${notificationId}`),
   updatePreferences: (preferences) => api.put('/notifications/preferences', preferences),
+  getPreferences: () => api.get('/notifications/preferences'),
 };
 
 // Roommate API endpoints

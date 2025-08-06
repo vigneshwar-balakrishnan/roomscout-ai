@@ -120,45 +120,144 @@ router.post('/send-message', async (req, res) => {
             const result = langchainResult.result;
             console.log(`✅ LangChain classification: ${result.is_housing}, confidence: ${result.confidence_score}`);
             
-            // Build response based on LangChain results
-            let responseContent = '';
-            
-            if (result.is_housing === true) {
-                const extractedData = result.extracted_data || {};
-                responseContent = `I found housing information in your message! `;
-                
-                if (extractedData.location) responseContent += `Location: ${extractedData.location}. `;
-                if (extractedData.rent_price) responseContent += `Price: ${extractedData.rent_price}. `;
-                if (extractedData.room_type) responseContent += `Type: ${extractedData.room_type}. `;
-                if (extractedData.availability_date) responseContent += `Available: ${extractedData.availability_date}. `;
-                if (extractedData.contact_info) responseContent += `Contact: ${extractedData.contact_info}. `;
-                
-                if (!extractedData.location && !extractedData.rent_price) {
-                    responseContent += `This appears to be a housing-related message. I can help you find housing options in the Boston area.`;
-                }
-            } else if (result.is_housing === false) {
-                responseContent = `I detected this message as spam or irrelevant content. Please provide housing-related information.`;
+            // Check if LangChain had an error in classification or low confidence
+            if ((result.reasoning && result.reasoning.includes('Error')) || result.confidence_score < 0.5) {
+                console.log('⚠️ LangChain classification error or low confidence, using fallback');
+                // Force fallback to keyword matching
+                langchainResult.success = false;
             } else {
-                responseContent = `This doesn't appear to be housing-related. I can help you with housing questions about Boston neighborhoods, rental prices, or roommate searches.`;
-            }
-            
-            res.json({
-                success: true,
-                result: {
-                    content: responseContent,
-                    housingResults: result.is_housing === true ? [result] : [],
-                    metadata: {
-                        confidence: result.confidence_score || 0.8,
-                        processingTime: result.processing_time || 0.5,
-                        queryType: result.is_housing === true ? 'housing' : 'general',
-                        langchainUsed: true,
-                        classification: result.is_housing === true ? 'HOUSING' : 'GENERAL',
-                        extractionMethod: result.extraction_method,
-                        securityStatus: result.security_status
-                    },
-                    sessionId: `langchain_${Date.now()}`
+                // Check if it might still be a housing query despite AI classification
+                const housingEmojis = ['🏠', '🏡', '🛏️'];
+                const strictHousingKeywords = ['rent', 'apartment', 'housing', 'room', 'lease', 'month', 'available', 'sublet', 'northeastern', 'neu', 'boston', 'spot', 'spots', 'hall', 'private', 'shared', 'temp', 'temporary', 'accommodation', 'walk', 'mins', 'line', 'dm', 'contact', 'phone', 'number', 'address', 'street', 'ave', 'st', 'rd', 'court', 'ct', 'way', 'park', 'square', 'sq', 'apartments', 'apts', 'building', 'complex', 'studio', '1br', '2br', '3br', '1b', '2b', '3b', 'bedroom', 'bathroom', 'bath', 'br', 'ba', 'utilities', 'included', 'deposit', 'lease', 'rental', 'sublet', 'sublease', 'furnished', 'unfurnished', 'pet', 'friendly', 'no', 'pets', 'smoking', 'non', 'smoker', 'female', 'male', 'girls', 'boys', 'mixed', 'gender', 'all', 'girls', 'all', 'boys', 'coed', 'co-ed', 'immediate', 'move', 'in', 'ready', 'available', 'now', 'asap', 'urgent', 'quick', 'fast', 'deal', 'offer', 'discount', 'reduced', 'price', 'cheap', 'affordable', 'budget', 'friendly', 'student', 'friendly', 'near', 'close', 'proximity', 'distance', 'walking', 'distance', 'transit', 'transportation', 'bus', 'train', 'subway', 'metro', 'shuttle', 'bike', 'bicycle', 'parking', 'garage', 'laundry', 'washer', 'dryer', 'kitchen', 'bathroom', 'bath', 'shower', 'balcony', 'patio', 'deck', 'garden', 'yard', 'backyard', 'front', 'porch', 'entrance', 'elevator', 'stairs', 'floor', 'level', 'basement', 'attic', 'loft', 'penthouse', 'duplex', 'townhouse', 'house', 'home', 'residence', 'dwelling', 'unit', 'suite', 'flat', 'condo', 'condominium', 'coop', 'cooperative', 'landlord', 'tenant', 'leaseholder', 'renter', 'owner', 'property', 'management', 'company', 'real', 'estate', 'agent', 'broker', 'realtor', 'listing', 'advertisement', 'ad', 'post', 'announcement', 'notice', 'available', 'vacant', 'empty', 'unoccupied', 'ready', 'move', 'in', 'immediate', 'occupancy', 'possession', 'available', 'date', 'start', 'beginning', 'commencement', 'duration', 'period', 'term', 'length', 'time', 'temporary', 'short', 'term', 'long', 'term', 'permanent', 'flexible', 'negotiable', 'reasonable', 'fair', 'market', 'rate', 'competitive', 'pricing', 'cost', 'effective', 'economical', 'inexpensive', 'cheap', 'affordable', 'budget', 'friendly', 'student', 'discount', 'deal', 'offer', 'special', 'promotion', 'reduced', 'price', 'discount', 'savings', 'value', 'worth', 'quality', 'standard', 'premium', 'luxury', 'high', 'end', 'upscale', 'modern', 'contemporary', 'traditional', 'classic', 'vintage', 'antique', 'new', 'old', 'renovated', 'updated', 'remodeled', 'refurbished', 'maintained', 'clean', 'tidy', 'neat', 'organized', 'spacious', 'roomy', 'large', 'small', 'compact', 'cozy', 'comfortable', 'convenient', 'accessible', 'easy', 'reach', 'access', 'entry', 'exit', 'entrance', 'door', 'window', 'view', 'scenic', 'panoramic', 'city', 'skyline', 'downtown', 'uptown', 'midtown', 'suburban', 'urban', 'rural', 'residential', 'commercial', 'industrial', 'mixed', 'use', 'development', 'community', 'neighborhood', 'area', 'district', 'zone', 'region', 'section', 'part', 'side', 'corner', 'block', 'street', 'avenue', 'road', 'drive', 'lane', 'way', 'path', 'trail', 'walk', 'plaza', 'square', 'circle', 'loop', 'crescent', 'terrace', 'place', 'court', 'alley', 'passage', 'thoroughfare', 'highway', 'freeway', 'expressway', 'parkway', 'boulevard', 'promenade', 'esplanade', 'boardwalk', 'pier', 'dock', 'wharf', 'marina', 'harbor', 'port', 'terminal', 'station', 'stop', 'hub', 'center', 'central'];
+                
+                // Check for housing emojis first (strong indicator)
+                const hasHousingEmoji = housingEmojis.some(emoji => message.includes(emoji));
+                
+                // Check for strict housing keywords (more specific)
+                const hasStrictHousingKeyword = strictHousingKeywords.some(keyword => 
+                    message.toLowerCase().includes(keyword)
+                );
+                
+                // Require either housing emoji OR strict housing keywords for better accuracy
+                const mightBeHousing = hasHousingEmoji || hasStrictHousingKeyword;
+                
+                // Build response based on LangChain results
+                let responseContent = '';
+                
+                if (result.is_housing === true) {
+                    const extractedData = result.extracted_data || {};
+                    responseContent = `I found housing information in your message! `;
+                    
+                    if (extractedData.location) responseContent += `Location: ${extractedData.location}. `;
+                    if (extractedData.rent_price) responseContent += `Price: ${extractedData.rent_price}. `;
+                    if (extractedData.room_type) responseContent += `Type: ${extractedData.room_type}. `;
+                    if (extractedData.availability_date) responseContent += `Available: ${extractedData.availability_date}. `;
+                    if (extractedData.contact_info) responseContent += `Contact: ${extractedData.contact_info}. `;
+                    
+                    if (!extractedData.location && !extractedData.rent_price) {
+                        responseContent += `This appears to be a housing-related message. I can help you find housing options in the Boston area.`;
+                    }
+                } else if (result.is_housing === false) {
+                    // Check if it might still be a housing query despite AI classification
+                    if (mightBeHousing) {
+                        responseContent = `I understand you're asking about housing! "${message}" - I can help you find housing options in the Boston area.`;
+                        
+                        // Try to fetch relevant listings based on the query
+                        let listings = [];
+                        try {
+                            const Housing = require('../models/Housing');
+                            
+                            // Build a more dynamic query based on the message content
+                            let query = { status: 'active' };
+                            let sortOptions = { createdAt: -1 };
+                            
+                            // Check for specific keywords in the message
+                            const messageLower = message.toLowerCase();
+                            
+                            if (messageLower.includes('budget') || messageLower.includes('affordable') || messageLower.includes('cheap') || messageLower.includes('under')) {
+                                query.price = { $lte: 2500 };
+                                sortOptions = { price: 1 }; // Sort by price ascending
+                                responseContent += ` Here are some affordable options under $2500:`;
+                            } else if (messageLower.includes('back bay') || messageLower.includes('fenway') || messageLower.includes('mission hill')) {
+                                // Search for specific neighborhoods
+                                const neighborhoods = [];
+                                if (messageLower.includes('back bay')) neighborhoods.push('Back Bay');
+                                if (messageLower.includes('fenway')) neighborhoods.push('Fenway');
+                                if (messageLower.includes('mission hill')) neighborhoods.push('Mission Hill');
+                                if (neighborhoods.length > 0) {
+                                    query['location.neighborhood'] = { $in: neighborhoods };
+                                    responseContent += ` Here are listings in ${neighborhoods.join(', ')}:`;
+                                }
+                            } else if (messageLower.includes('studio') || messageLower.includes('1br') || messageLower.includes('1 bedroom')) {
+                                query.$or = [
+                                    { roomType: 'studio' },
+                                    { roomType: '1BR' },
+                                    { bedrooms: 1 }
+                                ];
+                                responseContent += ` Here are some studio and 1-bedroom options:`;
+                            } else if (messageLower.includes('2br') || messageLower.includes('2 bedroom')) {
+                                query.$or = [
+                                    { roomType: '2BR' },
+                                    { bedrooms: 2 }
+                                ];
+                                responseContent += ` Here are some 2-bedroom options:`;
+                            } else {
+                                responseContent += ` Here are some current listings that might interest you:`;
+                            }
+                            
+                            listings = await Housing.find(query)
+                                .limit(3)
+                                .select('title price location propertyType bedrooms bathrooms')
+                                .sort(sortOptions)
+                                .lean();
+                            
+                            if (listings.length > 0) {
+                                responseContent += `\n\n🏠 **Current Listings:**\n`;
+                                listings.forEach((listing, index) => {
+                                    const propertyType = listing.propertyType || 'apartment';
+                                    const bedrooms = listing.bedrooms || 1;
+                                    const bathrooms = listing.bathrooms || 1;
+                                    const neighborhood = listing.location?.neighborhood || listing.location?.address || 'Boston';
+                                    
+                                    responseContent += `\n${index + 1}. **${listing.title}**\n`;
+                                    responseContent += `   💰 $${listing.price}/month\n`;
+                                    responseContent += `   🏘️ ${propertyType} • ${bedrooms}BR • ${bathrooms}BA\n`;
+                                    responseContent += `   📍 ${neighborhood}\n`;
+                                });
+                                responseContent += `\nYou can view all listings on the dashboard or ask me about specific neighborhoods like Back Bay, Mission Hill, or Fenway.`;
+                            } else {
+                                responseContent += `\n\nI can help you search for housing in different Boston neighborhoods. Try asking about specific areas like Back Bay, Mission Hill, or Fenway.`;
+                            }
+                        } catch (error) {
+                            console.error('Error fetching listings for chat response:', error);
+                            responseContent += `\n\nI can help you search for housing in different Boston neighborhoods. Try asking about specific areas like Back Bay, Mission Hill, or Fenway.`;
+                        }
+                    } else {
+                        responseContent = `I detected this message as spam or irrelevant content. Please provide housing-related information.`;
+                    }
+                } else {
+                    responseContent = `This doesn't appear to be housing-related. I can help you with housing questions about Boston neighborhoods, rental prices, or roommate searches.`;
                 }
-            });
+                
+                res.json({
+                    success: true,
+                    result: {
+                        content: responseContent,
+                        housingResults: result.is_housing === true ? [result] : (mightBeHousing ? listings || [] : []),
+                        metadata: {
+                            confidence: result.confidence_score || 0.8,
+                            processingTime: result.processing_time || 0.5,
+                            queryType: result.is_housing === true || mightBeHousing ? 'housing' : 'general',
+                            langchainUsed: true,
+                            classification: result.is_housing === true || mightBeHousing ? 'HOUSING' : 'GENERAL',
+                            extractionMethod: result.extraction_method,
+                            securityStatus: result.security_status
+                        },
+                        sessionId: `langchain_${Date.now()}`
+                    }
+                });
+                return; // Exit early if LangChain worked
+            }
         } else {
             // Fallback to simple keyword matching if LangChain is unavailable
             console.log('⚠️ LangChain pipeline unavailable, using fallback');

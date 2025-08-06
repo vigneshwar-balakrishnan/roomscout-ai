@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Resources from './pages/Resources';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import HousingDetail from './pages/HousingDetail';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 import ForgotPassword from './components/auth/ForgotPassword';
@@ -24,32 +25,34 @@ import './neu-theme.css';
 // Northeastern University Theme Configuration
 const neuTheme = {
   token: {
-    colorPrimary: '#C8102E',
-    colorSuccess: '#52c41a',
-    colorWarning: '#faad14',
-    colorError: '#ff4d4f',
-    colorInfo: '#1890ff',
-    borderRadius: 6,
+    colorPrimary: '#1e3a8a', // Midnight blue instead of red
+    colorSuccess: '#10b981',
+    colorWarning: '#f59e0b',
+    colorError: '#ef4444',
+    colorInfo: '#3b82f6',
+    borderRadius: 12,
     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
   algorithm: theme.defaultAlgorithm,
   components: {
     Button: {
-      borderRadius: 6,
-      fontWeight: 500,
+      borderRadius: 12,
+      fontWeight: 600,
+      boxShadow: '0 4px 12px rgba(30, 58, 138, 0.15)',
     },
     Card: {
-      borderRadius: 8,
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+      borderRadius: 16,
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
     },
     Input: {
-      borderRadius: 6,
+      borderRadius: 12,
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
     },
     Select: {
-      borderRadius: 6,
+      borderRadius: 12,
     },
     Modal: {
-      borderRadius: 8,
+      borderRadius: 16,
     },
   },
 };
@@ -99,6 +102,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <Profile />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/housing/:id" 
+                    element={
+                      <ProtectedRoute>
+                        <HousingDetail />
                       </ProtectedRoute>
                     } 
                   />

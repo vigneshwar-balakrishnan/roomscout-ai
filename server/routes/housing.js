@@ -189,6 +189,7 @@ router.get('/', async (req, res) => {
     }));
 
     res.json({
+      success: true,
       listings: listingsWithSavedFlag,
       total,
       page: parseInt(page),
@@ -234,6 +235,7 @@ router.get('/stats', async (req, res) => {
     ]);
 
     res.json({
+      success: true,
       overall: stats[0] || {},
       propertyTypes: propertyTypeStats
     });
@@ -260,7 +262,10 @@ router.get('/popular-searches', async (req, res) => {
       'Furnished apartment'
     ];
 
-    res.json({ popularSearches });
+    res.json({ 
+      success: true,
+      popularSearches 
+    });
 
   } catch (error) {
     console.error('Error fetching popular searches:', error);
@@ -311,9 +316,9 @@ router.get('/search-suggestions', async (req, res) => {
 // @access  Private
 router.get('/saved', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('savedListings');
+    const user = await User.findById(req.user._id);
     const savedListings = await Housing.find({
-      _id: { $in: user.savedListings },
+      _id: { $in: user.savedListings || [] },
       status: 'active'
     }).populate('owner', 'firstName lastName email');
 
@@ -349,7 +354,7 @@ router.get('/:id', async (req, res) => {
   try {
     const listing = await Housing.findById(req.params.id)
       .populate('owner', 'firstName lastName email phone')
-      .populate('reviews.user', 'firstName lastName');
+      .populate('reviews.reviewer', 'firstName lastName');
 
     if (!listing) {
       return res.status(404).json({ error: 'Listing not found' });

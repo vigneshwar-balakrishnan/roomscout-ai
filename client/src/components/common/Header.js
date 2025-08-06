@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationCenter from './NotificationCenter';
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
@@ -115,6 +116,9 @@ const Header = () => {
 
       {/* User Menu */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* Notification Center */}
+        <NotificationCenter />
+        
         {user?.isEduEmail && (
           <div style={{
             backgroundColor: 'rgba(255, 255, 255, 0.2)',

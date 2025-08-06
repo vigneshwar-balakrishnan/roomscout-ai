@@ -1,13 +1,17 @@
-/* Northeastern University Theme Styles */
+/* Northeastern University Theme Styles - Modern Desktop-First Design */
 
 :root {
-  --neu-red: #C8102E;
-  --neu-black: #000000;
+  --neu-primary: #1e3a8a; /* Midnight blue */
+  --neu-secondary: #3b82f6; /* Blue */
+  --neu-accent: #f59e0b; /* Amber */
+  --neu-success: #10b981; /* Emerald */
+  --neu-error: #ef4444; /* Red */
+  --neu-black: #111827;
   --neu-white: #FFFFFF;
-  --neu-gray: #F5F5F5;
-  --neu-dark-gray: #333333;
-  --neu-light-gray: #E8E8E8;
-  --neu-accent: #FF6B35;
+  --neu-gray: #f8fafc;
+  --neu-dark-gray: #374151;
+  --neu-light-gray: #e5e7eb;
+  --neu-border: #d1d5db;
 }
 
 /* Global Styles */
@@ -22,7 +26,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--neu-gray);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
 }
 
 .app {
@@ -33,89 +38,124 @@ body {
 
 .main-content {
   flex: 1;
-  padding: 24px;
-  max-width: 1200px;
+  padding: 32px 48px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
 }
 
-/* Northeastern Branding */
+/* Login Page Specific Styles */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e40af 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  color: white;
+  position: relative;
+  z-index: 2;
+}
+
+.login-form-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  position: relative;
+  z-index: 2;
+}
+
+/* Northeastern Branding - Modern Gradient */
 .neu-header {
-  background: linear-gradient(135deg, var(--neu-red) 0%, #A00020 100%);
+  background: linear-gradient(135deg, var(--neu-primary) 0%, var(--neu-secondary) 100%);
   color: var(--neu-white);
-  box-shadow: 0 2px 8px rgba(200, 16, 46, 0.3);
+  box-shadow: 0 8px 32px rgba(30, 58, 138, 0.15);
+  backdrop-filter: blur(10px);
 }
 
 .neu-logo {
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   color: var(--neu-white);
   text-decoration: none;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .neu-logo:hover {
-  color: var(--neu-white);
-  opacity: 0.9;
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Card Styles */
+/* Card Styles - Modern Glass Effect */
 .neu-card {
-  background: var(--neu-white);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--neu-light-gray);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
 
 .neu-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-/* Button Styles */
+/* Button Styles - Modern Gradients */
 .neu-button-primary {
-  background: var(--neu-red);
-  border-color: var(--neu-red);
+  background: linear-gradient(135deg, var(--neu-primary) 0%, var(--neu-secondary) 100%);
+  border: none;
   color: var(--neu-white);
-  font-weight: 500;
-  border-radius: 6px;
+  font-weight: 600;
+  border-radius: 12px;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.15);
 }
 
 .neu-button-primary:hover {
-  background: #A00020;
-  border-color: #A00020;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
   color: var(--neu-white);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(200, 16, 46, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 58, 138, 0.25);
 }
 
 .neu-button-secondary {
-  background: var(--neu-white);
-  border-color: var(--neu-red);
-  color: var(--neu-red);
-  font-weight: 500;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--neu-primary);
+  color: var(--neu-primary);
+  font-weight: 600;
+  border-radius: 12px;
   transition: all 0.3s ease;
-}
-
-.neu-button-secondary:hover {
-  background: var(--neu-red);
-  border-color: var(--neu-red);
-  color: var(--neu-white);
-  transform: translateY(-1px);
+  backdrop-filter: blur(10px);
 }
 
 /* Form Styles */
 .neu-input {
-  border-radius: 6px;
-  border: 1px solid var(--neu-light-gray);
+  border-radius: 12px;
+  border: 2px solid var(--neu-light-gray);
   transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 
 .neu-input:focus {
-  border-color: var(--neu-red);
-  box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.2);
+  border-color: var(--neu-primary);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
 }
 
 /* Navigation Styles */
@@ -139,8 +179,8 @@ body {
 /* Chat Styles */
 .chat-container {
   background: var(--neu-white);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   height: 600px;
   display: flex;
   flex-direction: column;
@@ -160,16 +200,17 @@ body {
 
 /* Housing Card Styles */
 .housing-card {
-  background: var(--neu-white);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .housing-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
 }
 
 .housing-image {
@@ -179,13 +220,13 @@ body {
 }
 
 .housing-content {
-  padding: 16px;
+  padding: 20px;
 }
 
 .housing-price {
-  color: var(--neu-red);
-  font-weight: 600;
-  font-size: 1.2rem;
+  color: var(--neu-primary);
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .housing-location {
@@ -203,28 +244,28 @@ body {
 }
 
 .neu-spinner {
-  color: var(--neu-red);
+  color: var(--neu-primary);
 }
 
 /* Alert Styles */
 .neu-alert-success {
-  border-color: #52c41a;
-  background: #f6ffed;
+  border-color: #10b981;
+  background: #ecfdf5;
 }
 
 .neu-alert-error {
-  border-color: #ff4d4f;
-  background: #fff2f0;
+  border-color: #ef4444;
+  background: #fef2f2;
 }
 
 .neu-alert-warning {
-  border-color: #faad14;
-  background: #fffbe6;
+  border-color: #f59e0b;
+  background: #fffbeb;
 }
 
 .neu-alert-info {
-  border-color: #1890ff;
-  background: #f0f9ff;
+  border-color: #3b82f6;
+  background: #eff6ff;
 }
 
 /* Footer Styles */
@@ -235,28 +276,62 @@ body {
   margin-top: auto;
 }
 
-/* Responsive Design */
+/* Desktop-First Responsive Design */
+@media (max-width: 1200px) {
+  .main-content {
+    padding: 24px 32px;
+    max-width: 1200px;
+  }
+}
+
 @media (max-width: 768px) {
   .main-content {
-    padding: 16px;
+    padding: 20px 24px;
+    max-width: 100%;
   }
   
   .neu-card {
-    margin-bottom: 16px;
+    border-radius: 12px;
   }
   
   .chat-container {
-    height: 500px;
+    padding: 16px;
+  }
+  
+  .neu-logo {
+    font-size: 1.5rem;
+  }
+  
+  /* Mobile login adjustments */
+  .login-hero {
+    padding: 40px 20px;
+  }
+  
+  .login-form-container {
+    padding: 20px;
   }
 }
 
 @media (max-width: 480px) {
   .main-content {
-    padding: 12px;
+    padding: 16px;
   }
   
   .neu-logo {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
+  }
+  
+  .neu-card {
+    border-radius: 8px;
+  }
+  
+  /* Mobile login adjustments */
+  .login-hero {
+    padding: 20px;
+  }
+  
+  .login-form-container {
+    padding: 16px;
   }
 }
 

@@ -1,0 +1,91 @@
+.housing-list {
+  width: 100%;
+}
+
+.housing-list-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.housing-list-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  min-height: 400px;
+}
+
+.housing-list-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  min-height: 400px;
+  text-align: center;
+}
+
+.housing-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  min-height: 400px;
+}
+
+.housing-list-loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 16px 0;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.housing-list-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.housing-list-summary {
+  text-align: center;
+  margin-top: 16px;
+  padding: 16px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .housing-list-content {
+    gap: 12px;
+  }
+  
+  .housing-list-loading,
+  .housing-list-error,
+  .housing-list-empty {
+    padding: 40px 16px;
+    min-height: 300px;
+  }
+  
+  .housing-list-loading-more {
+    padding: 16px;
+    margin: 12px 0;
+  }
+  
+  .housing-list-pagination {
+    margin-top: 24px;
+  }
+  
+  .housing-list-summary {
+    margin-top: 12px;
+    padding: 12px;
+  }
+} 

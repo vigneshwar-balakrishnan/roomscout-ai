@@ -1,54 +1,81 @@
-import React, { useState } from 'react';
-import { Card, Tag, Button, Typography, Space, Tooltip } from 'antd';
+import React from 'react';
+import { Card, Tag, Button, Space, Typography } from 'antd';
 import { 
-  EnvironmentOutlined, 
-  HomeOutlined, 
   HeartOutlined, 
-  HeartFilled,
+  HeartFilled, 
   EyeOutlined, 
-  MessageOutlined,
-  StarOutlined
+  PhoneOutlined,
+  EnvironmentOutlined,
+  HomeOutlined,
+  UserOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+import './HousingCard.css';
 
-const { Title, Text } = Typography;
+const { Text, Title } = Typography;
 
-const HousingCard = ({ listing, onSave, onContact, onView }) => {
-  const [isSaved, setIsSaved] = useState(listing.isSaved || false);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+const HousingCard = ({ 
+  listing, 
+  onSave, 
+  onContact, 
+  onView, 
+  isSaved = false,
+  compact = false,
+  showActions = true 
+}) => {
+  const {
+    _id,
+    title,
+    description,
+    location,
+    price,
+    bedrooms,
+    bathrooms,
+    propertyType,
+    roomType,
+    amenities = [],
+    northeasternFeatures = {},
+    images = [],
+    views = 0,
+    createdAt,
+    confidence,
+    source
+  } = listing;
 
-  const handleSave = async () => {
-    if (loading) return;
-    
-    setLoading(true);
-    try {
-      if (onSave) {
-        await onSave(listing._id, !isSaved);
-      }
-      setIsSaved(!isSaved);
-    } catch (error) {
-      console.error('Error saving listing:', error);
-    } finally {
-      setLoading(false);
-    }
+  const isExtracted = source === 'extracted_from_chat';
+
+  const handleSave = () => {
+    if (onSave) onSave(_id, !isSaved);
   };
 
   const handleContact = () => {
-    if (onContact) {
-      onContact(listing);
-    }
+    if (onContact) onContact(_id);
   };
 
   const handleView = () => {
     if (onView) {
-      onView(listing);
+      onView(_id);
     } else {
-      navigate(`/housing/${listing._id}`);
+      // Default navigation to listing detail page
+      window.location.href = `/housing/${_id}`;
     }
   };
 
+  const getPrimaryImage = () => {
+    if (images && images.length > 0) {
+      const primaryImage = images.find(img => img.isPrimary) || images[0];
+      return primaryImage.url || primaryImage;
+    }
+    return null;
+  };
+
   const formatPrice = (price) => {
+    // Handle null, undefined, or NaN values
+    if (!price || isNaN(price)) {
+      return 'Price not specified';
+    }
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -57,301 +84,270 @@ const HousingCard = ({ listing, onSave, onContact, onView }) => {
     }).format(price);
   };
 
-  const getAmenityColor = (amenity) => {
-    const colorMap = {
-      'wifi': 'blue',
-      'laundry': 'green',
-      'kitchen': 'orange',
-      'parking': 'purple',
-      'gym': 'red',
-      'ac': 'cyan',
-      'heating': 'volcano',
-      'dishwasher': 'geekblue',
-      'balcony': 'lime',
-      'elevator': 'magenta',
-      'doorman': 'gold',
-      'furnished': 'geekblue',
-      'utilities_included': 'green',
-      'pet_friendly': 'orange',
-      'smoke_free': 'green',
-      'study_room': 'blue',
-      'bike_storage': 'cyan',
-      'rooftop_access': 'purple',
-      'security_system': 'red'
-    };
-    return colorMap[amenity] || 'default';
+  const getNeighborhoodDisplay = () => {
+    if (location?.neighborhood) {
+      return location.neighborhood;
+    }
+    if (location?.address) {
+      return location.address.split(',')[0];
+    }
+    return 'Boston';
+  };
+
+  const getWalkTimeDisplay = () => {
+    if (location?.walkTimeToNEU) {
+      return `${location.walkTimeToNEU} min walk`;
+    }
+    return null;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Recently';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Recently';
+      }
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch (error) {
+      return 'Recently';
+    }
   };
 
   return (
-    <Card
+    <Card 
+      className={`housing-card ${compact ? 'compact' : ''} ${isExtracted ? 'extracted' : ''}`}
       hoverable
-      className="housing-card"
+      bodyStyle={{ padding: '24px' }}
       style={{
-        borderRadius: '12px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.3s ease',
-        border: '1px solid #f0f0f0',
-        overflow: 'hidden'
+        marginBottom: '16px',
+        borderRadius: '8px',
+        border: '1px solid #E5E7EB',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        backgroundColor: '#FFFFFF'
       }}
-      bodyStyle={{
-        padding: '16px'
-      }}
-      cover={
-        <div style={{ 
-          height: '200px', 
-          background: 'linear-gradient(135deg, #C8102E 0%, #A00020 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative'
-        }}>
-          {listing.images && listing.images.length > 0 ? (
-            <img
-              alt={listing.title}
-              src={listing.images[0].url}
+    >
+      <div className="housing-card-content">
+        {/* Image Section */}
+        <div className="housing-card-image">
+          {getPrimaryImage() ? (
+            <img 
+              src={getPrimaryImage()} 
+              alt={title}
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover'
+                width: '280px',
+                height: '200px',
+                objectFit: 'cover',
+                borderRadius: '6px',
+                border: '1px solid #F3F4F6'
               }}
             />
           ) : (
-            <div style={{ 
-              color: 'white', 
-              textAlign: 'center',
-              fontSize: '14px'
-            }}>
-              <HomeOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
-              <br />
-              No Image Available
+            <div 
+              style={{
+                width: '280px',
+                height: '200px',
+                backgroundColor: '#F9FAFB',
+                borderRadius: '6px',
+                border: '1px solid #E5E7EB',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#6B7280'
+              }}
+            >
+              <HomeOutlined style={{ fontSize: '48px' }} />
             </div>
           )}
-          
-          {/* Save button overlay */}
-          <Button
-            type="text"
-            icon={isSaved ? <HeartFilled /> : <HeartOutlined />}
-            onClick={handleSave}
-            loading={loading}
-            style={{
-              position: 'absolute',
-              top: '8px',
-              right: '8px',
-              color: isSaved ? '#C8102E' : 'white',
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          />
-          
-          {/* Price overlay */}
-          <div style={{
-            position: 'absolute',
-            bottom: '8px',
-            left: '8px',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            fontSize: '14px',
-            fontWeight: '600'
-          }}>
-            {formatPrice(listing.price)}/mo
-          </div>
         </div>
-      }
-      actions={[
-        <Tooltip title="View Details">
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={handleView}
-            style={{ color: '#C8102E' }}
-          >
-            View
-          </Button>
-        </Tooltip>,
-        <Tooltip title="Contact Owner">
-          <Button
-            type="text"
-            icon={<MessageOutlined />}
-            onClick={handleContact}
-            style={{ color: '#C8102E' }}
-          >
-            Contact
-          </Button>
-        </Tooltip>
-      ]}
-    >
-      <div style={{ marginBottom: '12px' }}>
-        <Title level={4} style={{ 
-          margin: '0 0 8px 0',
-          color: '#333',
-          fontSize: '16px',
-          lineHeight: '1.4'
-        }}>
-          {listing.title}
-        </Title>
-        
-        <Space style={{ marginBottom: '8px' }}>
-          <Text style={{ color: '#666', fontSize: '12px' }}>
-            <EnvironmentOutlined style={{ marginRight: '4px' }} />
-            {listing.location?.neighborhood || listing.location?.address}
-          </Text>
-        </Space>
-        
-        <Space style={{ marginBottom: '12px' }}>
-          <Text style={{ color: '#666', fontSize: '12px' }}>
-            <HomeOutlined style={{ marginRight: '4px' }} />
-            {listing.bedrooms} bed
-          </Text>
-          <Text style={{ color: '#666', fontSize: '12px' }}>
-            {listing.bathrooms} bath
-          </Text>
-          {listing.squareFootage && (
-            <Text style={{ color: '#666', fontSize: '12px' }}>
-              {listing.squareFootage} sq ft
+
+        {/* Content Section */}
+        <div className="housing-card-details">
+          {/* Header */}
+          <div className="housing-card-header">
+            <div className="housing-card-title-section">
+              <Title level={4} style={{ margin: 0, color: '#374151', fontWeight: 600 }}>
+                {title}
+              </Title>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                <EnvironmentOutlined style={{ color: '#6B7280', fontSize: '14px' }} />
+                <Text style={{ color: '#6B7280', fontSize: '14px' }}>
+                  {getNeighborhoodDisplay()}
+                </Text>
+                {getWalkTimeDisplay() && (
+                  <>
+                    <Text style={{ color: '#9CA3AF' }}>•</Text>
+                    <Text style={{ color: '#6B7280', fontSize: '14px' }}>
+                      {getWalkTimeDisplay()}
+                    </Text>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div className="housing-card-price">
+              <Text style={{ fontSize: '24px', fontWeight: 700, color: '#374151' }}>
+                {formatPrice(price)}
+              </Text>
+              <Text style={{ color: '#6B7280', fontSize: '14px' }}>/month</Text>
+            </div>
+          </div>
+
+          {/* Property Details */}
+          <div className="housing-card-property-details">
+            <Space size="large" style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <HomeOutlined style={{ color: '#6B7280' }} />
+                <Text style={{ color: '#374151', fontWeight: 500 }}>
+                  {(propertyType || 'apartment').charAt(0).toUpperCase() + (propertyType || 'apartment').slice(1)}
+                </Text>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <UserOutlined style={{ color: '#6B7280' }} />
+                <Text style={{ color: '#374151', fontWeight: 500 }}>
+                  {roomType || 'Private'}
+                </Text>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Text style={{ color: '#374151', fontWeight: 500 }}>
+                  {bedrooms || 1} BR
+                </Text>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Text style={{ color: '#374151', fontWeight: 500 }}>
+                  {bathrooms || 1} Bath
+                </Text>
+              </div>
+            </Space>
+          </div>
+
+          {/* Description */}
+          <div className="housing-card-description">
+            <Text style={{ color: '#6B7280', lineHeight: '1.5' }}>
+              {description}
             </Text>
-          )}
-        </Space>
-      </div>
+          </div>
 
-      {/* Property type and room type */}
-      <div style={{ marginBottom: '12px' }}>
-        <Space>
-          <Tag color="#C8102E" style={{ fontSize: '11px' }}>
-            {listing.propertyType}
-          </Tag>
-          <Tag color="#1890ff" style={{ fontSize: '11px' }}>
-            {listing.roomType}
-          </Tag>
-          {listing.rentType && (
-            <Tag color="#52c41a" style={{ fontSize: '11px' }}>
-              {listing.rentType}
-            </Tag>
-          )}
-        </Space>
-      </div>
+          {/* Amenities and Features */}
+          <div className="housing-card-amenities">
+            {amenities.length > 0 && (
+              <div style={{ marginBottom: '12px' }}>
+                <Space wrap size="small">
+                  {amenities.slice(0, 4).map((amenity, index) => (
+                    <Tag 
+                      key={index}
+                      style={{
+                        backgroundColor: '#F3F4F6',
+                        color: '#374151',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '4px',
+                        fontSize: '12px'
+                      }}
+                    >
+                      {amenity}
+                    </Tag>
+                  ))}
+                  {amenities.length > 4 && (
+                    <Text style={{ color: '#6B7280', fontSize: '12px' }}>
+                      +{amenities.length - 4} more
+                    </Text>
+                  )}
+                </Space>
+              </div>
+            )}
+          </div>
 
-      {/* Amenities */}
-      {listing.amenities && listing.amenities.length > 0 && (
-        <div style={{ marginBottom: '12px' }}>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '4px',
-            maxHeight: '60px',
-            overflow: 'hidden'
-          }}>
-            {listing.amenities.slice(0, 4).map((amenity, index) => (
-              <Tag
-                key={index}
-                color={getAmenityColor(amenity)}
-                style={{ 
-                  fontSize: '10px',
-                  margin: '0',
-                  padding: '2px 6px'
-                }}
-              >
-                {amenity.replace('_', ' ')}
+          {/* NEU Features */}
+          {northeasternFeatures && Object.keys(northeasternFeatures).length > 0 && (
+            <div className="housing-card-neu-features">
+              <Space wrap size="small">
+                {northeasternFeatures.shuttleAccess && (
+                  <Tag style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: 'none' }}>
+                    Shuttle Access
+                  </Tag>
+                )}
+                {northeasternFeatures.bikeFriendly && (
+                  <Tag style={{ backgroundColor: '#DBEAFE', color: '#1E40AF', border: 'none' }}>
+                    Bike Friendly
+                  </Tag>
+                )}
+                {northeasternFeatures.studySpaces && (
+                  <Tag style={{ backgroundColor: '#D1FAE5', color: '#065F46', border: 'none' }}>
+                    Study Spaces
+                  </Tag>
+                )}
+              </Space>
+            </div>
+          )}
+
+          {/* Confidence Score for Extracted Listings */}
+          {isExtracted && confidence && (
+            <div style={{ marginTop: '12px' }}>
+              <Tag style={{ backgroundColor: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB' }}>
+                AI Confidence: {Math.round(confidence * 100)}%
               </Tag>
-            ))}
-            {listing.amenities.length > 4 && (
-              <Tag style={{ 
-                fontSize: '10px',
-                margin: '0',
-                padding: '2px 6px'
-              }}>
-                +{listing.amenities.length - 4} more
-              </Tag>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="housing-card-footer">
+            <div className="housing-card-meta">
+              <Space size="large">
+                <Text style={{ color: '#6B7280', fontSize: '12px' }}>
+                  <EyeOutlined style={{ marginRight: '4px' }} />
+                  {views} views
+                </Text>
+                <Text style={{ color: '#6B7280', fontSize: '12px' }}>
+                  <CalendarOutlined style={{ marginRight: '4px' }} />
+                  {createdAt ? formatDate(createdAt) : 'Recently'}
+                </Text>
+              </Space>
+            </div>
+
+            {showActions && (
+              <div className="housing-card-actions">
+                <Space size="small">
+                  <Button
+                    type={isSaved ? "primary" : "default"}
+                    icon={isSaved ? <HeartFilled /> : <HeartOutlined />}
+                    onClick={handleSave}
+                    style={{
+                      backgroundColor: isSaved ? '#C8102E' : '#FFFFFF',
+                      borderColor: isSaved ? '#C8102E' : '#D1D5DB',
+                      color: isSaved ? '#FFFFFF' : '#374151'
+                    }}
+                  >
+                    {isSaved ? 'Saved' : 'Save'}
+                  </Button>
+                  <Button
+                    type="default"
+                    icon={<PhoneOutlined />}
+                    onClick={handleContact}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderColor: '#D1D5DB',
+                      color: '#374151'
+                    }}
+                  >
+                    Contact
+                  </Button>
+                  <Button
+                    type="primary"
+                    onClick={handleView}
+                    style={{
+                      backgroundColor: '#C8102E',
+                      borderColor: '#C8102E'
+                    }}
+                  >
+                    View Details
+                  </Button>
+                </Space>
+              </div>
             )}
           </div>
         </div>
-      )}
-
-      {/* Northeastern features */}
-      {listing.northeasternFeatures && Object.values(listing.northeasternFeatures).some(Boolean) && (
-        <div style={{ marginBottom: '12px' }}>
-          <Text style={{ 
-            color: '#C8102E', 
-            fontSize: '11px',
-            fontWeight: '600',
-            display: 'block',
-            marginBottom: '4px'
-          }}>
-            NEU Features:
-          </Text>
-          <div style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: '4px'
-          }}>
-            {Object.entries(listing.northeasternFeatures).map(([feature, enabled]) => {
-              if (!enabled) return null;
-              return (
-                <Tag
-                  key={feature}
-                  color="#C8102E"
-                  style={{ 
-                    fontSize: '10px',
-                    margin: '0',
-                    padding: '2px 6px'
-                  }}
-                >
-                  {feature.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                </Tag>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Rating and reviews */}
-      {listing.averageRating && listing.averageRating > 0 && (
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          marginBottom: '8px'
-        }}>
-          <StarOutlined style={{ 
-            color: '#faad14', 
-            marginRight: '4px',
-            fontSize: '12px'
-          }} />
-          <Text style={{ 
-            color: '#666', 
-            fontSize: '12px',
-            marginRight: '8px'
-          }}>
-            {listing.averageRating.toFixed(1)}
-          </Text>
-          {listing.reviewCount > 0 && (
-            <Text style={{ 
-              color: '#999', 
-              fontSize: '11px'
-            }}>
-              ({listing.reviewCount} reviews)
-            </Text>
-          )}
-        </div>
-      )}
-
-      {/* Status indicator */}
-      {listing.status && listing.status !== 'active' && (
-        <div style={{ marginTop: '8px' }}>
-          <Tag 
-            color={listing.status === 'rented' ? 'red' : 'orange'}
-            style={{ fontSize: '11px' }}
-          >
-            {listing.status.toUpperCase()}
-          </Tag>
-        </div>
-      )}
+      </div>
     </Card>
   );
 };

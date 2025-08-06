@@ -91,7 +91,34 @@ const userSchema = new mongoose.Schema({
     default: Date.now
   },
   resetPasswordToken: String,
-  resetPasswordExpires: Date
+  resetPasswordExpires: Date,
+  savedListings: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Housing'
+  }],
+  notificationPreferences: {
+    email: { 
+      type: Boolean, 
+      default: true 
+    },
+    push: { 
+      type: Boolean, 
+      default: true 
+    },
+    sms: { 
+      type: Boolean, 
+      default: false 
+    },
+    inApp: { 
+      type: Boolean, 
+      default: true 
+    },
+    frequency: { 
+      type: String, 
+      enum: ['immediate', 'daily', 'weekly'],
+      default: 'daily'
+    }
+  }
 }, {
   timestamps: true
 });
