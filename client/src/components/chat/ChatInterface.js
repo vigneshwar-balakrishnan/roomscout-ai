@@ -85,22 +85,23 @@ const ChatInterface = () => {
         setIsProcessing(true);
 
         try {
-            // Send message to backend
-            const response = await chatAPI.sendMessage({
+            // Use the new conversational chat endpoint
+            const response = await chatAPI.chatQuery({
                 message: inputValue.trim(),
-                sessionId: sessionId,
-                userId: user?.id
+                context: messages.length > 0 ? messages[messages.length - 1].content : '',
+                user_id: user?.id
             });
 
-            if (response.data.success) {
+            if (response.data) {
                 const aiMessage = {
                     id: `ai_${Date.now()}`,
                     type: 'ai',
-                    content: response.data.result.content,
+                    content: response.data.response,
                     timestamp: new Date(),
                     sender: 'RoomScout AI',
-                    metadata: response.data.result.metadata,
-                    housingResults: response.data.result.housingResults || []
+                    responseType: response.data.type,
+                    suggestions: response.data.suggestions || [],
+                    data: response.data.data || null
                 };
 
                 setMessages(prev => [...prev, aiMessage]);
@@ -255,6 +256,14 @@ const ChatInterface = () => {
         }
     };
 
+    const handleSuggestionClick = (suggestion) => {
+        setInputValue(suggestion);
+        // Automatically send the suggestion as a message
+        setTimeout(() => {
+            handleSendMessage();
+        }, 100);
+    };
+
     return (
         <Layout className="chat-layout" style={{ background: '#FFFFFF' }}>
             <Content className="chat-content" style={{ padding: '24px' }}>
@@ -316,6 +325,7 @@ const ChatInterface = () => {
                                 key={message.id} 
                                 message={message}
                                 user={user}
+                                onSuggestionClick={handleSuggestionClick}
                             />
                         ))}
                         

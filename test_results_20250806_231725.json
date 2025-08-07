@@ -1,0 +1,970 @@
+{
+  "timestamp": "20250806_231725",
+  "stats": {
+    "total": 44,
+    "successful": 21,
+    "failed": 23,
+    "ai_generated": 0,
+    "with_listings": 12,
+    "types": {
+      "housing_search_results": 21
+    }
+  },
+  "issues": [
+    "\u274c 23 queries failed completely",
+    "\u26a0\ufe0f  Only 0/21 responses were AI-generated",
+    "\ud83d\udd0d 7 search queries returned no listings"
+  ],
+  "detailed_results": [
+    {
+      "success": false,
+      "query": "2BR near campus under $1200 available in fall with parking",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "pet-friendly studio in Mission Hill under $800 with utilities included",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": true,
+      "query": "furnished 1BR apartment in Back Bay above $2000 with gym access",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 1,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": 1,
+          "range_type": "above",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [
+            "Back Bay"
+          ],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 254,
+      "suggestions": [
+        "Show more listings",
+        "Search other neighborhoods",
+        "Search lower budget"
+      ]
+    },
+    {
+      "success": true,
+      "query": "shared room near NEU under $600 for female students only",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 600,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": "near NEU"
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 318,
+      "suggestions": [
+        "Try higher budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": false,
+      "query": "3BR house in Fenway under $3000 available September 1st",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "luxury condo in South End above $2500 with doorman and AC",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": true,
+      "query": "affordable housing in Roxbury under $1000 with laundry facilities",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 1000,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [
+            "Roxbury"
+          ],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 331,
+      "suggestions": [
+        "Try higher budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": true,
+      "query": "student housing near campus under $900 with bike storage",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 900,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": "near NEU"
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 318,
+      "suggestions": [
+        "Try higher budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": true,
+      "query": "modern apartment in Jamaica Plain above $1500 with rooftop access",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 5,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": 1500,
+          "range_type": "above",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings",
+        "Search lower budget"
+      ]
+    },
+    {
+      "success": true,
+      "query": "budget-friendly room in Mission Hill under $700 utilities included",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 700,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [
+            "Mission Hill"
+          ],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 334,
+      "suggestions": [
+        "Try higher budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": false,
+      "query": "spacious 2BR in Back Bay above $2200 with dishwasher",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "quiet studio near NEU under $1100 for graduate student",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": true,
+      "query": "group housing for 4 students under $2400 total in Mission Hill",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 4,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [
+            "Mission Hill"
+          ],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 332,
+      "suggestions": [
+        "Try higher budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": true,
+      "query": "wheelchair accessible apartment under $1800 near public transit",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 3,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 1800,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 461,
+      "suggestions": [
+        "Show more listings",
+        "Search higher budget"
+      ]
+    },
+    {
+      "success": false,
+      "query": "short-term rental in Fenway above $1200 available immediately",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "co-living space in Allston under $800 with shared kitchen",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": true,
+      "query": "penthouse apartment in Back Bay above $3500 with city views",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": 3500,
+          "range_type": "above",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [
+            "Back Bay"
+          ],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 332,
+      "suggestions": [
+        "Try lower budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": true,
+      "query": "eco-friendly housing near campus under $1000 with solar panels",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 1000,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": "near NEU"
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 320,
+      "suggestions": [
+        "Try higher budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": false,
+      "query": "artist loft in Jamaica Plain above $1300 with high ceilings",
+      "type": "complex",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": true,
+      "query": "family-friendly housing in Brookline under $2000 with playground nearby",
+      "type": "complex",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 3,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 2000,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 461,
+      "suggestions": [
+        "Show more listings",
+        "Search higher budget"
+      ]
+    },
+    {
+      "success": true,
+      "query": "show me apartments under 1500",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 1,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 1500,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 252,
+      "suggestions": [
+        "Show more listings",
+        "Search higher budget"
+      ]
+    },
+    {
+      "success": true,
+      "query": "find housing in Mission Hill",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [
+            "Mission Hill"
+          ],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 324,
+      "suggestions": [
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": false,
+      "query": "what's available above 2000 dollars",
+      "type": "general",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": true,
+      "query": "I need a studio apartment",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 6,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings"
+      ]
+    },
+    {
+      "success": true,
+      "query": "looking for pet-friendly places",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 6,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings"
+      ]
+    },
+    {
+      "success": true,
+      "query": "show me furnished apartments",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 6,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings"
+      ]
+    },
+    {
+      "success": true,
+      "query": "find 2BR apartments",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": 2,
+          "min": null,
+          "range_type": "below",
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 316,
+      "suggestions": [
+        "Try higher budget",
+        "Search different areas",
+        "Get budget advice"
+      ]
+    },
+    {
+      "success": true,
+      "query": "housing with parking",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 6,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings"
+      ]
+    },
+    {
+      "success": true,
+      "query": "apartments with gym",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 6,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings"
+      ]
+    },
+    {
+      "success": true,
+      "query": "cheap housing options",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 6,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": null
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings"
+      ]
+    },
+    {
+      "success": false,
+      "query": "luxury apartments in Boston",
+      "type": "general",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": true,
+      "query": "student housing near NEU",
+      "type": "general",
+      "response_type": "housing_search_results",
+      "has_listings": true,
+      "listing_count": 6,
+      "search_criteria": {
+        "amenities": [],
+        "budget": {
+          "max": null,
+          "min": null,
+          "range_type": null,
+          "target": null
+        },
+        "location": {
+          "city": "Boston",
+          "neighborhoods": [],
+          "proximity": "near NEU"
+        },
+        "query_type": "housing_search",
+        "room_type": {
+          "bedroom_count": null,
+          "property_types": [],
+          "room_types": []
+        },
+        "timeline": {
+          "availability": null,
+          "start_date": null
+        }
+      },
+      "ai_generated": false,
+      "response_length": 499,
+      "suggestions": [
+        "Show more listings"
+      ]
+    },
+    {
+      "success": false,
+      "query": "hello there",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "how are you doing?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "what can you help me with?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "tell me about yourself",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "I'm new to Boston, any advice?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "what's the best neighborhood for students?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "how much should I budget for rent?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "is Mission Hill safe?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "thanks for your help",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "can you explain the T system?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "what's it like living in Boston?",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "success": false,
+      "query": "goodbye",
+      "type": "conversational",
+      "error": "'NoneType' object has no attribute 'get'"
+    }
+  ]
+}

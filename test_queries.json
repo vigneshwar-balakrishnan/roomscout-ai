@@ -1,0 +1,52 @@
+{
+  "complex_queries": [
+    "2BR near campus under $1200 available in fall with parking",
+    "pet-friendly studio in Mission Hill under $800 with utilities included",
+    "furnished 1BR apartment in Back Bay above $2000 with gym access",
+    "shared room near NEU under $600 for female students only",
+    "3BR house in Fenway under $3000 available September 1st",
+    "luxury condo in South End above $2500 with doorman and AC",
+    "affordable housing in Roxbury under $1000 with laundry facilities",
+    "student housing near campus under $900 with bike storage",
+    "modern apartment in Jamaica Plain above $1500 with rooftop access",
+    "budget-friendly room in Mission Hill under $700 utilities included",
+    "spacious 2BR in Back Bay above $2200 with dishwasher",
+    "quiet studio near NEU under $1100 for graduate student",
+    "group housing for 4 students under $2400 total in Mission Hill",
+    "wheelchair accessible apartment under $1800 near public transit",
+    "short-term rental in Fenway above $1200 available immediately",
+    "co-living space in Allston under $800 with shared kitchen",
+    "penthouse apartment in Back Bay above $3500 with city views",
+    "eco-friendly housing near campus under $1000 with solar panels",
+    "artist loft in Jamaica Plain above $1300 with high ceilings",
+    "family-friendly housing in Brookline under $2000 with playground nearby"
+  ],
+  "general_housing": [
+    "show me apartments under 1500",
+    "find housing in Mission Hill",
+    "what's available above 2000 dollars",
+    "I need a studio apartment",
+    "looking for pet-friendly places",
+    "show me furnished apartments",
+    "find 2BR apartments",
+    "housing with parking",
+    "apartments with gym",
+    "cheap housing options",
+    "luxury apartments in Boston",
+    "student housing near NEU"
+  ],
+  "conversational": [
+    "hello there",
+    "how are you doing?",
+    "what can you help me with?",
+    "tell me about yourself",
+    "I'm new to Boston, any advice?",
+    "what's the best neighborhood for students?",
+    "how much should I budget for rent?",
+    "is Mission Hill safe?",
+    "thanks for your help",
+    "can you explain the T system?",
+    "what's it like living in Boston?",
+    "goodbye"
+  ]
+}

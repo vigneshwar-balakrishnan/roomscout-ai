@@ -153,7 +153,12 @@ export const housingAPI = {
 
 // Chat API endpoints
 export const chatAPI = {
+  // New conversational chat endpoint
+  chatQuery: (messageData) => api.post('/chat/chat-query', messageData),
+  
+  // Legacy send message endpoint (redirects to chat-query)
   sendMessage: (messageData) => api.post('/chat/send-message', messageData),
+  
   uploadFile: (formData) => api.post('/chat/upload-file', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -165,6 +170,9 @@ export const chatAPI = {
   getChatSessions: () => api.get('/chat/sessions'),
   getChatSession: (sessionId) => api.get(`/chat/session/${sessionId}`),
   deleteChatSession: (sessionId) => api.delete(`/chat/session/${sessionId}`),
+  
+  // Health check for Python API
+  getPythonHealth: () => api.get('/chat/python-health'),
 };
 
 // Upload API endpoints

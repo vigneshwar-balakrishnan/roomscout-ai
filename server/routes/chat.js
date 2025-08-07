@@ -95,6 +95,217 @@ const pythonAPIClient = {
     }
 };
 
+// ADD THIS NEW ENDPOINT - Chat query for conversational responses
+router.post('/chat-query', async (req, res) => {
+    try {
+        const { message, context = '', user_id } = req.body;
+        
+        console.log('🤖 Chat query received:', message.substring(0, 50) + '...');
+        
+        if (!message?.trim()) {
+            return res.status(400).json({
+                response: "I didn't receive a message. Please try again.",
+                type: 'error',
+                suggestions: ['Ask about housing', 'Upload WhatsApp file', 'Get neighborhood info']
+            });
+        }
+
+        // Try to get response from Python API first
+        try {
+            const pythonResponse = await axios.post(`${pythonAPIClient.baseURL}/chat-query`, {
+                message: message.trim(),
+                context: context,
+                user_id: user_id
+            }, {
+                timeout: 30000,
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = pythonResponse.data;
+            console.log('✅ Python API chat response received');
+            
+            // Return structured response that matches frontend expectations
+            res.json({
+                response: result.response,
+                type: result.type || 'conversation',
+                data: result.data || null,
+                suggestions: result.suggestions || [],
+                ai_generated: result.ai_generated || false,  // Add this line
+                timestamp: new Date().toISOString()
+            });
+
+        } catch (pythonError) {
+            console.log('⚠️ Python API unavailable, using Express fallback');
+            
+            // Fallback to Express-based response
+            const fallbackResponse = await generateFallbackChatResponse(message, context);
+            res.json(fallbackResponse);
+        }
+
+    } catch (error) {
+        console.error('❌ Chat query error:', error);
+        res.status(500).json({
+            response: "I'm having trouble right now. Please try asking about NEU housing options or upload a WhatsApp file.",
+            type: 'error',
+            suggestions: ['Ask about Mission Hill', 'Upload housing file', 'Get budget tips'],
+            error: error.message
+        });
+    }
+});
+
+// ADD THIS HELPER FUNCTION - Fallback chat responses when Python API is down
+async function generateFallbackChatResponse(message, context) {
+    const messageLower = message.toLowerCase();
+    
+    // Housing-related responses
+    if (messageLower.includes('housing') || messageLower.includes('apartment') || messageLower.includes('room')) {
+        try {
+            const Housing = require('../models/Housing');
+            const listings = await Housing.find({ status: 'active' })
+                .limit(3)
+                .select('title price location propertyType bedrooms')
+                .sort({ createdAt: -1 })
+                .lean();
+
+            let response = `🏠 I can help you find housing! Here are some current listings:\n\n`;
+            
+            if (listings.length > 0) {
+                listings.forEach((listing, index) => {
+                    response += `${index + 1}. **${listing.title}**\n`;
+                    response += `   💰 $${listing.price}/month\n`;
+                    response += `   📍 ${listing.location?.neighborhood || 'Boston'}\n`;
+                    response += `   🏠 ${listing.propertyType} • ${listing.bedrooms}BR\n\n`;
+                });
+            } else {
+                response += `I don't have current listings in the database, but I can help you search for housing in Boston neighborhoods like Mission Hill, Back Bay, or Fenway.`;
+            }
+
+            return {
+                response: response,
+                type: 'housing_search',
+                data: { listings: listings },
+                suggestions: ['Show more listings', 'Search Mission Hill', 'Find roommates']
+            };
+        } catch (error) {
+            console.error('Database error in fallback:', error);
+        }
+    }
+    
+    // Neighborhood queries
+    else if (messageLower.includes('mission hill') || messageLower.includes('back bay') || messageLower.includes('fenway')) {
+        const neighborhoods = {
+            'mission hill': {
+                info: 'Mission Hill is the closest neighborhood to NEU campus, about a 10-minute walk. Popular with students, rent ranges from $600-1200 for shared spaces.',
+                pros: ['Walking distance to NEU', 'Student-friendly', 'Affordable options'],
+                cons: ['Can be noisy', 'Limited parking']
+            },
+            'back bay': {
+                info: 'Back Bay is upscale with Victorian architecture. Great restaurants and shopping, but more expensive. Rent typically $1200-2500.',
+                pros: ['Beautiful architecture', 'Great dining', 'T accessibility'],
+                cons: ['More expensive', 'Tourist area']
+            },
+            'fenway': {
+                info: 'Home to Fenway Park, vibrant nightlife and good T access. Mix of students and young professionals. Rent $800-1800.',
+                pros: ['Vibrant area', 'Good transportation', 'Mix of housing types'],
+                cons: ['Game day crowds', 'Can be busy']
+            }
+        };
+
+        const neighborhood = Object.keys(neighborhoods).find(n => messageLower.includes(n));
+        if (neighborhood) {
+            const info = neighborhoods[neighborhood];
+            let response = `📍 **${neighborhood.charAt(0).toUpperCase() + neighborhood.slice(1)} Neighborhood Info:**\n\n`;
+            response += `${info.info}\n\n`;
+            response += `✅ **Pros:** ${info.pros.join(', ')}\n`;
+            response += `⚠️ **Considerations:** ${info.cons.join(', ')}`;
+
+            return {
+                response: response,
+                type: 'neighborhood_info',
+                suggestions: ['Find listings here', 'Compare neighborhoods', 'Get roommate tips']
+            };
+        }
+    }
+    
+    // Budget queries
+    else if (messageLower.includes('budget') || messageLower.includes('cheap') || messageLower.includes('affordable')) {
+        return {
+            response: `💰 **Budget Housing Tips for NEU Students:**\n\n• **Shared rooms:** $500-800/month\n• **Studio/1BR:** $1200-1800/month\n• **Best budget areas:** Mission Hill, Roxbury, JP\n• **Money-saving tips:** Look for utilities included, consider fall/spring availability\n\nMission Hill and Roxbury tend to be the most affordable options near NEU!`,
+            type: 'budget_advice',
+            suggestions: ['Find budget listings', 'Search Mission Hill', 'Roommate matching']
+        };
+    }
+    
+    // Roommate queries
+    else if (messageLower.includes('roommate') || messageLower.includes('roommates')) {
+        return {
+            response: `👥 **Finding Good Roommates:**\n\n• Use NEU housing Facebook groups\n• Ask about lifestyle preferences (study habits, cleanliness, guests)\n• Meet in person before committing\n• Discuss financial responsibilities upfront\n• Check references if possible\n\n**Red flags:** Unwilling to video chat, no references, unrealistic expectations about rent/location.`,
+            type: 'roommate_advice',
+            suggestions: ['Join housing groups', 'Create roommate profile', 'Get lease advice']
+        };
+    }
+    
+    // General greeting or help
+    else if (messageLower.includes('hello') || messageLower.includes('hi') || messageLower.includes('help')) {
+        return {
+            response: `👋 Hi! I'm RoomScout AI, your housing assistant for NEU students. I can help you:\n\n🏠 Find apartment listings\n📍 Learn about Boston neighborhoods\n💰 Get budget advice\n👥 Find roommates\n📱 Analyze WhatsApp housing messages\n\nWhat would you like help with today?`,
+            type: 'greeting',
+            suggestions: ['Find housing near NEU', 'Compare neighborhoods', 'Upload WhatsApp file']
+        };
+    }
+    
+    // Default response
+    else {
+        return {
+            response: `I understand you're asking: "${message}"\n\nI'm RoomScout AI, specializing in NEU student housing. I can help you find apartments, analyze housing messages, or provide neighborhood information. What housing question can I help with?`,
+            type: 'general',
+            suggestions: ['Find apartments', 'Neighborhood info', 'Budget advice']
+        };
+    }
+}
+
+// MODIFY YOUR EXISTING /send-message endpoint to be simpler
+router.post('/send-message', async (req, res) => {
+    try {
+        const { message, context = '' } = req.body;
+        
+        // Just redirect to chat-query for consistency
+        const chatResponse = await axios.post(`${req.protocol}://${req.get('host')}/api/chat/chat-query`, {
+            message,
+            context,
+            user_id: req.user?.id
+        });
+        
+        res.json(chatResponse.data);
+        
+    } catch (error) {
+        console.error('❌ Send message error:', error);
+        res.status(500).json({
+            response: "I'm having trouble processing your message. Please try again.",
+            type: 'error',
+            suggestions: ['Try again', 'Ask simpler question', 'Upload file instead']
+        });
+    }
+});
+
+// ADD THIS - Health check that tests Python API connection
+router.get('/python-health', async (req, res) => {
+    try {
+        const health = await pythonAPIClient.healthCheck();
+        res.json({
+            express_api: 'healthy',
+            python_api: health.status || 'unknown',
+            python_details: health
+        });
+    } catch (error) {
+        res.json({
+            express_api: 'healthy',
+            python_api: 'unhealthy',
+            error: error.message
+        });
+    }
+});
+
 // Test route to debug
 router.get('/test', (req, res) => {
     res.json({ message: 'Chat routes working' });
@@ -106,7 +317,7 @@ router.get('/health', (req, res) => {
 });
 
 // Enhanced send message endpoint with LangChain pipeline
-router.post('/send-message', async (req, res) => {
+router.post('/send-message-old', async (req, res) => {
     try {
         const { message } = req.body;
         

@@ -353,8 +353,7 @@ router.get('/my-listings', auth, async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const listing = await Housing.findById(req.params.id)
-      .populate('owner', 'firstName lastName email phone')
-      .populate('reviews.reviewer', 'firstName lastName');
+      .populate('owner', 'firstName lastName email phone');
 
     if (!listing) {
       return res.status(404).json({ error: 'Listing not found' });

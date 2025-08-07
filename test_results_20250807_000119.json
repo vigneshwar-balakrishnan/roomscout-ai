@@ -1,0 +1,362 @@
+{
+  "timestamp": "20250807_000119",
+  "stats": {
+    "total": 44,
+    "successful": 7,
+    "failed": 37,
+    "ai_generated": 0,
+    "with_listings": 0,
+    "types": {
+      "general": 4,
+      "neighborhood_info": 3
+    }
+  },
+  "issues": [
+    "\u274c 37 queries failed completely",
+    "\u26a0\ufe0f  Only 0/7 responses were AI-generated",
+    "\ud83d\udd0d 6 search queries returned no listings"
+  ],
+  "detailed_results": [
+    {
+      "success": true,
+      "query": "2BR near campus under $1200 available in fall with parking",
+      "type": "complex",
+      "response_type": "general",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": null,
+      "ai_generated": false,
+      "response_length": 278,
+      "suggestions": [
+        "Find apartments",
+        "Neighborhood info",
+        "Budget advice"
+      ],
+      "raw_response": "I understand you're asking: \"2BR near campus under $1200 available in fall with parking\"\n\nI'm RoomSc"
+    },
+    {
+      "success": true,
+      "query": "pet-friendly studio in Mission Hill under $800 with utilities included",
+      "type": "complex",
+      "response_type": "neighborhood_info",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": null,
+      "ai_generated": false,
+      "response_length": 315,
+      "suggestions": [
+        "Find listings here",
+        "Compare neighborhoods",
+        "Get roommate tips"
+      ],
+      "raw_response": "\ud83d\udccd **Mission hill Neighborhood Info:**\n\nMission Hill is the closest neighborhood to NEU campus, about"
+    },
+    {
+      "success": false,
+      "query": "furnished 1BR apartment in Back Bay above $2000 with gym access",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Read timed out. (read timeout=30)"
+    },
+    {
+      "success": false,
+      "query": "shared room near NEU under $600 for female students only",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Read timed out. (read timeout=30)"
+    },
+    {
+      "success": true,
+      "query": "3BR house in Fenway under $3000 available September 1st",
+      "type": "complex",
+      "response_type": "neighborhood_info",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": null,
+      "ai_generated": false,
+      "response_length": 268,
+      "suggestions": [
+        "Find listings here",
+        "Compare neighborhoods",
+        "Get roommate tips"
+      ],
+      "raw_response": "\ud83d\udccd **Fenway Neighborhood Info:**\n\nHome to Fenway Park, vibrant nightlife and good T access. Mix of st"
+    },
+    {
+      "success": true,
+      "query": "luxury condo in South End above $2500 with doorman and AC",
+      "type": "complex",
+      "response_type": "general",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": null,
+      "ai_generated": false,
+      "response_length": 277,
+      "suggestions": [
+        "Find apartments",
+        "Neighborhood info",
+        "Budget advice"
+      ],
+      "raw_response": "I understand you're asking: \"luxury condo in South End above $2500 with doorman and AC\"\n\nI'm RoomSco"
+    },
+    {
+      "success": false,
+      "query": "affordable housing in Roxbury under $1000 with laundry facilities",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Read timed out. (read timeout=30)"
+    },
+    {
+      "success": false,
+      "query": "student housing near campus under $900 with bike storage",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Read timed out. (read timeout=30)"
+    },
+    {
+      "success": false,
+      "query": "modern apartment in Jamaica Plain above $1500 with rooftop access",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Read timed out. (read timeout=30)"
+    },
+    {
+      "success": false,
+      "query": "budget-friendly room in Mission Hill under $700 utilities included",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Read timed out. (read timeout=30)"
+    },
+    {
+      "success": true,
+      "query": "spacious 2BR in Back Bay above $2200 with dishwasher",
+      "type": "complex",
+      "response_type": "neighborhood_info",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": null,
+      "ai_generated": false,
+      "response_length": 281,
+      "suggestions": [
+        "Find listings here",
+        "Compare neighborhoods",
+        "Get roommate tips"
+      ],
+      "raw_response": "\ud83d\udccd **Back bay Neighborhood Info:**\n\nBack Bay is upscale with Victorian architecture. Great restaurant"
+    },
+    {
+      "success": true,
+      "query": "quiet studio near NEU under $1100 for graduate student",
+      "type": "complex",
+      "response_type": "general",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": null,
+      "ai_generated": false,
+      "response_length": 274,
+      "suggestions": [
+        "Find apartments",
+        "Neighborhood info",
+        "Budget advice"
+      ],
+      "raw_response": "I understand you're asking: \"quiet studio near NEU under $1100 for graduate student\"\n\nI'm RoomScout "
+    },
+    {
+      "success": false,
+      "query": "group housing for 4 students under $2400 total in Mission Hill",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Read timed out. (read timeout=30)"
+    },
+    {
+      "success": false,
+      "query": "wheelchair accessible apartment under $1800 near public transit",
+      "type": "complex",
+      "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+    },
+    {
+      "success": false,
+      "query": "short-term rental in Fenway above $1200 available immediately",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955f6b0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "co-living space in Allston under $800 with shared kitchen",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149e5af60>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "penthouse apartment in Back Bay above $3500 with city views",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149588c20>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "eco-friendly housing near campus under $1000 with solar panels",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741495884d0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "artist loft in Jamaica Plain above $1300 with high ceilings",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149589790>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "family-friendly housing in Brookline under $2000 with playground nearby",
+      "type": "complex",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741494fe8a0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "show me apartments under 1500",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955f650>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "find housing in Mission Hill",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955c920>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "what's available above 2000 dollars",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741495880e0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "I need a studio apartment",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741495892e0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "looking for pet-friendly places",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741495893a0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "show me furnished apartments",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955fda0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "find 2BR apartments",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955f590>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "housing with parking",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955f770>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "apartments with gym",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741495887a0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "cheap housing options",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149588560>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "luxury apartments in Boston",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149589490>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "student housing near NEU",
+      "type": "general",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741498c1d90>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "hello there",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955f8f0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "how are you doing?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955e420>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "what can you help me with?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955fcb0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "tell me about yourself",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149588d70>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "I'm new to Boston, any advice?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149588b60>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "what's the best neighborhood for students?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955fda0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "how much should I budget for rent?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955f0e0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "is Mission Hill safe?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x77414955f530>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "thanks for your help",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741497be450>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "can you explain the T system?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x774149588b30>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": false,
+      "query": "what's it like living in Boston?",
+      "type": "conversational",
+      "error": "HTTPConnectionPool(host='localhost', port=5000): Max retries exceeded with url: /api/chat/chat-query (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7741495883b0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "success": true,
+      "query": "goodbye",
+      "type": "conversational",
+      "response_type": "general",
+      "has_listings": false,
+      "listing_count": 0,
+      "search_criteria": null,
+      "ai_generated": false,
+      "response_length": 227,
+      "suggestions": [
+        "Find apartments",
+        "Neighborhood info",
+        "Budget advice"
+      ],
+      "raw_response": "I understand you're asking: \"goodbye\"\n\nI'm RoomScout AI, specializing in NEU student housing. I can "
+    }
+  ]
+}

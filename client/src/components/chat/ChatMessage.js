@@ -9,6 +9,30 @@ import './ChatMessage.css';
 
 const { Text, Paragraph } = Typography;
 
+// Helper function to get response type colors
+const getResponseTypeColor = (responseType) => {
+    switch (responseType) {
+        case 'housing_general':
+        case 'housing_search':
+        case 'housing_extraction':
+            return '#10B981'; // Green
+        case 'neighborhood_info':
+            return '#3B82F6'; // Blue
+        case 'budget_advice':
+            return '#F59E0B'; // Yellow
+        case 'roommate_advice':
+            return '#8B5CF6'; // Purple
+        case 'greeting':
+            return '#06B6D4'; // Cyan
+        case 'general_guidance':
+            return '#6B7280'; // Gray
+        case 'error':
+            return '#EF4444'; // Red
+        default:
+            return '#6B7280'; // Gray
+    }
+};
+
 // Husky icon component
 const HuskyIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -20,7 +44,7 @@ const HuskyIcon = () => (
   </svg>
 );
 
-const ChatMessage = ({ message, user }) => {
+const ChatMessage = ({ message, user, onSuggestionClick }) => {
     const { user: authUser } = useAuth();
     const isUser = message.type === 'user';
     const isAI = message.type === 'ai';
@@ -98,9 +122,119 @@ const ChatMessage = ({ message, user }) => {
             case 'ai':
                 return (
                     <div className="message-content ai-message">
-                        <Paragraph style={{ margin: 0, color: '#374151' }}>
+                        <Paragraph style={{ margin: 0, color: '#374151', whiteSpace: 'pre-line' }}>
                             {message.content}
                         </Paragraph>
+                        
+                        {/* Render housing listings if available */}
+                        {message.data && message.data.listings && message.data.listings.length > 0 && (
+                            <div className="housing-listings" style={{ marginTop: '16px' }}>
+                                <Text strong style={{ display: 'block', marginBottom: '12px', color: '#374151' }}>
+                                    🏠 Available Listings ({message.data.count} found):
+                                </Text>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {message.data.listings.slice(0, 3).map((listing, index) => (
+                                        <Card 
+                                            key={index}
+                                            size="small" 
+                                            style={{ 
+                                                borderColor: '#E5E7EB',
+                                                backgroundColor: '#FFFFFF',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            hoverable
+                                            onClick={() => {
+                                                // Navigate to listing detail page
+                                                window.location.href = `/housing/${listing._id}`;
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <Text strong style={{ color: '#374151', fontSize: '14px' }}>
+                                                        {listing.title}
+                                                    </Text>
+                                                    <br />
+                                                    <Text style={{ color: '#6B7280', fontSize: '12px' }}>
+                                                        📍 {listing.location?.neighborhood || 'Boston'} • {listing.propertyType} • {listing.bedrooms}BR • {listing.bathrooms}BA
+                                                    </Text>
+                                                    {listing.amenities && listing.amenities.length > 0 && (
+                                                        <div style={{ marginTop: '4px' }}>
+                                                            <Text style={{ color: '#6B7280', fontSize: '11px' }}>
+                                                                ✨ {listing.amenities.slice(0, 2).join(', ')}
+                                                            </Text>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <Text strong style={{ color: '#C8102E', fontSize: '16px' }}>
+                                                        ${listing.price?.toLocaleString() || '0'}/month
+                                                    </Text>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                                {message.data.listings.length > 3 && (
+                                    <div style={{ marginTop: '8px', textAlign: 'center' }}>
+                                        <Text style={{ color: '#6B7280', fontSize: '12px' }}>
+                                            ... and {message.data.listings.length - 3} more listings available
+                                        </Text>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        {/* Render suggestions if available */}
+                        {message.suggestions && message.suggestions.length > 0 && (
+                            <div className="message-suggestions" style={{ marginTop: '12px' }}>
+                                <Text style={{ color: '#6B7280', fontSize: '12px', display: 'block', marginBottom: '8px' }}>
+                                    💡 Quick actions:
+                                </Text>
+                                <Space size="small" wrap>
+                                    {message.suggestions.map((suggestion, index) => (
+                                        <Button
+                                            key={index}
+                                            size="small"
+                                            type="default"
+                                            style={{
+                                                backgroundColor: '#F3F4F6',
+                                                borderColor: '#D1D5DB',
+                                                color: '#374151',
+                                                borderRadius: '16px',
+                                                fontSize: '12px',
+                                                height: '28px',
+                                                padding: '0 12px'
+                                            }}
+                                            onClick={() => {
+                                                if (onSuggestionClick) {
+                                                    onSuggestionClick(suggestion);
+                                                }
+                                            }}
+                                        >
+                                            {suggestion}
+                                        </Button>
+                                    ))}
+                                </Space>
+                            </div>
+                        )}
+
+                        {/* Render response type indicator */}
+                        {message.responseType && (
+                            <div className="message-type-indicator" style={{ marginTop: '8px' }}>
+                                <Tag 
+                                    style={{ 
+                                        backgroundColor: getResponseTypeColor(message.responseType),
+                                        color: '#FFFFFF',
+                                        border: 'none',
+                                        fontSize: '10px',
+                                        borderRadius: '12px'
+                                    }}
+                                >
+                                    {message.responseType.replace('_', ' ').toUpperCase()}
+                                </Tag>
+                            </div>
+                        )}
                         
                         {/* Render housing results if available */}
                         {message.housingResults && message.housingResults.length > 0 && (

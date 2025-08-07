@@ -43,9 +43,11 @@ if [ ! -f ".env" ]; then
     cat > .env << EOF
 OPENAI_API_KEY=your_openai_api_key_here
 LANGSMITH_API_KEY=your_langsmith_api_key_here
+DEVELOPMENT_MODE=true
 EOF
     echo "✅ .env file created with placeholder API keys"
     echo "⚠️  Please update the .env file with your actual API keys"
+    echo "💡 Development mode enabled to save tokens"
 fi
 
 # Check if port 5001 is available
@@ -66,8 +68,15 @@ echo "  POST /chat-query - Process chat query"
 echo "  POST /security-test - Test security hardening"
 echo "  GET  /metrics - Get performance metrics"
 echo "  POST /batch-process - Process multiple messages"
+echo ""
+echo "💡 Token Optimization Features:"
+echo "  - Development mode: Uses gpt-3.5-turbo instead of gpt-4o-mini"
+echo "  - Reduced max_tokens: 500 instead of 1000"
+echo "  - LangSmith tracing disabled in dev mode"
+echo "  - Simulated responses for testing"
+echo ""
 echo "Press Ctrl+C to stop"
 echo "=================================================="
 
 # Start the Flask API
-python app.py 
+python roomscout_pipeline.py 
