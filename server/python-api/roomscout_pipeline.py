@@ -243,7 +243,7 @@ Message: "{input_text}"
 
 Output: """)
 
-# NEW: Conversational Chat Prompt - This is what was missing!
+# ENHANCED: Personalized Conversational Chat Prompt with Context Awareness
 CONVERSATIONAL_CHAT_PROMPT = ChatPromptTemplate.from_template("""
 You are RoomScout AI, a friendly and knowledgeable housing assistant for Northeastern University students in Boston.
 
@@ -253,18 +253,36 @@ PERSONALITY:
 - Understanding of student budgets and challenges (most students have $500-1500/month budgets)
 - Conversational and helpful, like talking to a knowledgeable friend
 - Use emojis appropriately but don't overdo it
+- REMEMBER and BUILD ON previous conversation context
 
-KNOWLEDGE BASE:
-- Mission Hill: Closest to NEU (8-10 min walk), $550-1200 range, very student-friendly
-- Back Bay: Upscale area, $1200-2500 range, beautiful but expensive
-- Fenway: Fun area near Red Sox, $800-1800 range, good nightlife
-- Roxbury: Most affordable, $500-800 range, improving neighborhood
-- Jamaica Plain: Trendy/artsy, $700-1200 range, good for graduate students
+CONTEXT AWARENESS:
+- Remember budget amounts mentioned earlier in the conversation
+- Calculate group budgets when users mention splitting with friends
+- Connect related information across messages
+- Be specific about calculations: "With 4 friends at $500 each = $2000 total budget"
+
+GROUP HOUSING EXPERTISE:
+- When users mention roommates/friends, calculate total budget automatically
+- Search for appropriate group housing (3BR, 4BR places)
+- Show both total rent and per-person costs: "$1800/month ÷ 4 = $450 each"
+- Suggest group-friendly neighborhoods and arrangements
+- Consider group dynamics and shared living preferences
+
+BUDGET CALCULATIONS:
+- Individual budget: "Your $800 budget can get you a studio in Roxbury"
+- Group budget: "With 3 friends at $600 each = $2400 total, you can get a 3BR in Fenway"
+- Per-person breakdown: "That $2400 3BR = $800 each, perfect for your budget!"
+- Always show the math clearly
 
 Previous conversation: {context}
 Student's question: "{user_message}"
 
 INSTRUCTIONS:
+- REMEMBER previous budget mentions and build on them
+- If they mention splitting with friends, calculate total budget automatically
+- Be specific: "With 4 friends at $500 each, that's $2000 total budget"
+- Search for appropriate group housing when relevant
+- Show per-person costs clearly: "$1800/month ÷ 4 = $450 each"
 - If they ask about budget/price, give specific realistic recommendations
 - If they ask about neighborhoods, provide detailed local knowledge
 - If they share housing data (rent prices, addresses), help them analyze it
@@ -272,7 +290,7 @@ INSTRUCTIONS:
 - Always be encouraging and end with a helpful follow-up question
 - If they mention unrealistic budgets (like $100/month), gently explain Boston reality but offer solutions
 
-Generate a helpful, conversational response:""")
+Generate a helpful, personalized, and contextually aware response:""")
 
 # NEW: Housing Analysis Prompt - For analyzing shared housing data
 HOUSING_ANALYSIS_PROMPT = ChatPromptTemplate.from_template("""
@@ -718,7 +736,7 @@ class RoomScoutPipeline:
             }
 
     def generate_ai_chat_response(self, message: str, context: str = "") -> Dict[str, Any]:
-        """Generate AI-powered conversational responses using LangChain"""
+        """Generate AI-powered conversational responses using LangChain with enhanced context awareness"""
         try:
             logger.info(f"💬 Processing chat query: {message[:50]}...")
             
@@ -746,8 +764,16 @@ class RoomScoutPipeline:
             except Exception as e:
                 logger.warning(f"Classification failed: {e}, proceeding with AI analysis")
             
-            # Step 3: For housing-related queries, proceed with AI analysis
+            # Step 3: Enhanced context analysis for housing-related queries
             try:
+                # Extract budget and group information from current message
+                budget_info = self._extract_budget_and_group_info(message)
+                logger.info(f"💰 Budget info extracted: {budget_info}")
+                
+                # Enhance context with budget information
+                enhanced_context = self._enhance_context_with_budget(context, budget_info)
+                logger.info(f"🔄 Enhanced context: {enhanced_context[:100]}...")
+                
                 # Parse search criteria with AI
                 parsed_criteria = self._parse_search_query_ai(message)
                 query_type = parsed_criteria.get('query_type', 'CONVERSATION')
@@ -758,29 +784,38 @@ class RoomScoutPipeline:
                 if query_type == 'HOUSING_SEARCH':
                     logger.info("🔍 AI detected housing search, searching database")
                     search_criteria = parsed_criteria['search_criteria']
+                    
+                    # Enhance search criteria with group budget information
+                    if budget_info.get('group_size', 1) > 1:
+                        total_budget = budget_info.get('total_budget')
+                        if total_budget:
+                            search_criteria['budget']['max'] = total_budget
+                            search_criteria['room_type']['bedroom_count'] = budget_info.get('group_size')
+                            logger.info(f"👥 Enhanced search for group housing: {budget_info['group_size']} people, ${total_budget} total")
+                    
                     logger.info(f"🔎 Searching database with criteria: {search_criteria}")
                     
                     listings = self._search_housing_with_criteria(search_criteria)
                     logger.info(f"📊 Found {len(listings)} listings")
                     
-                    # Generate AI response about the search results
-                    response_text = self._generate_search_response_ai(message, search_criteria, listings)
+                    # Generate AI response about the search results with group context
+                    response_text = self._generate_search_response_ai(message, search_criteria, listings, budget_info)
                     
                     return {
                         "response": response_text,
                         "type": "housing_search_results",
-                        "data": {"listings": listings, "count": len(listings), "search_criteria": search_criteria},
+                        "data": {"listings": listings, "count": len(listings), "search_criteria": search_criteria, "budget_info": budget_info},
                         "suggestions": self._generate_search_suggestions(search_criteria, listings),
                         "ai_generated": True
                     }
                 
                 elif query_type in ['GENERAL_QUESTION', 'HOUSING_ADVICE']:
-                    # Use conversational AI for housing-related questions
+                    # Use conversational AI for housing-related questions with enhanced context
                     if self.chat_chain:
                         logger.info("💬 Using conversational AI for housing question")
                         chat_response = self.chat_chain.invoke({
                             "user_message": message,
-                            "context": context
+                            "context": enhanced_context
                         })
                         
                         suggestions = self._generate_contextual_suggestions(message, chat_response.content)
@@ -789,16 +824,17 @@ class RoomScoutPipeline:
                             "response": chat_response.content,
                             "type": "housing_advice", 
                             "suggestions": suggestions,
-                            "ai_generated": True
+                            "ai_generated": True,
+                            "budget_info": budget_info
                         }
                 
                 elif query_type == 'CONVERSATION':
-                    # Use conversational AI for general chat (but still housing-focused)
+                    # Use conversational AI for general chat (but still housing-focused) with enhanced context
                     if self.chat_chain:
                         logger.info("💬 Using conversational AI for general chat")
                         chat_response = self.chat_chain.invoke({
                             "user_message": message,
-                            "context": context
+                            "context": enhanced_context
                         })
                         
                         suggestions = self._generate_contextual_suggestions(message, chat_response.content)
@@ -807,7 +843,8 @@ class RoomScoutPipeline:
                             "response": chat_response.content,
                             "type": "conversational_ai", 
                             "suggestions": suggestions,
-                            "ai_generated": True
+                            "ai_generated": True,
+                            "budget_info": budget_info
                         }
                 
             except Exception as e:
@@ -1282,16 +1319,21 @@ class RoomScoutPipeline:
             logger.error(f"Error searching housing with criteria: {e}")
             return []
 
-    def _generate_search_response_ai(self, original_query: str, search_criteria: Dict[str, Any], listings: List[Dict[str, Any]]) -> str:
-        """Use AI to generate conversational response about search results"""
+    def _generate_search_response_ai(self, original_query: str, search_criteria: Dict[str, Any], listings: List[Dict[str, Any]], budget_info: Dict[str, Any] = None) -> str:
+        """Use AI to generate conversational response about search results with group budget awareness"""
         try:
             # Always try to use AI response generation when available
             if self.search_response_chain:
+                # Enhance the search criteria with budget info for AI
+                enhanced_criteria = search_criteria.copy()
+                if budget_info:
+                    enhanced_criteria['budget_info'] = budget_info
+                
                 # Use AI to generate response
                 logger.info("🤖 Generating AI-powered response about search results")
                 response = self.search_response_chain.invoke({
                     "original_query": original_query,
-                    "search_criteria": json.dumps(search_criteria, indent=2),
+                    "search_criteria": json.dumps(enhanced_criteria, indent=2),
                     "result_count": len(listings),
                     "housing_listings": json.dumps(listings[:3], indent=2)  # Send first 3 listings
                 })
@@ -1299,23 +1341,41 @@ class RoomScoutPipeline:
             else:
                 # Fallback to development response only if AI chains not available
                 logger.info("🔧 Generating development mode response")
-                return self._generate_search_response_dev(original_query, search_criteria, listings)
+                return self._generate_search_response_dev(original_query, search_criteria, listings, budget_info)
         except Exception as e:
             logger.error(f"Error generating search response with AI: {e}")
-            return self._generate_search_response_dev(original_query, search_criteria, listings)
+            return self._generate_search_response_dev(original_query, search_criteria, listings, budget_info)
 
-    def _generate_search_response_dev(self, original_query: str, search_criteria: Dict[str, Any], listings: List[Dict[str, Any]]) -> str:
-        """Development mode - generate smart response about search results"""
+    def _generate_search_response_dev(self, original_query: str, search_criteria: Dict[str, Any], listings: List[Dict[str, Any]], budget_info: Dict[str, Any] = None) -> str:
+        """Development mode - generate smart response about search results with group budget awareness"""
         budget = search_criteria.get('budget', {})
         location = search_criteria.get('location', {})
         
+        # Add group budget context to response
+        group_context = ""
+        if budget_info and budget_info.get('has_group'):
+            group_size = budget_info.get('group_size', 1)
+            individual_budget = budget_info.get('individual_budget')
+            total_budget = budget_info.get('total_budget')
+            
+            if individual_budget and total_budget:
+                group_context = f"\n👥 **Group Housing Context:** With {group_size} friends at ${individual_budget} each = ${total_budget} total budget\n"
+        
         if listings and len(listings) > 0:
-            response = f"🏠 **Found {len(listings)} housing option(s) for your search!**\n\n"
+            response = f"🏠 **Found {len(listings)} housing option(s) for your search!**{group_context}\n\n"
             
             for i, listing in enumerate(listings[:3], 1):
+                price = listing.get('price', 0)
                 response += f"**{i}. {listing.get('title', 'Housing Listing')}**\n"
-                response += f"   💰 ${listing.get('price', 0):,}/month\n"
-                response += f"   📍 {listing.get('location', {}).get('neighborhood', 'Boston')}\n"
+                response += f"   💰 ${price:,}/month"
+                
+                # Add per-person cost for group housing
+                if budget_info and budget_info.get('has_group'):
+                    group_size = budget_info.get('group_size', 1)
+                    per_person = price // group_size
+                    response += f" (${per_person}/person for {group_size} people)"
+                
+                response += f"\n   📍 {listing.get('location', {}).get('neighborhood', 'Boston')}\n"
                 response += f"   🏘️ {listing.get('propertyType', 'apartment')} • {listing.get('bedrooms', 1)}BR • {listing.get('bathrooms', 1)}BA\n"
                 if listing.get('amenities'):
                     amenities = listing['amenities'][:2]
@@ -1329,23 +1389,40 @@ class RoomScoutPipeline:
             
         else:
             # No results found
-            budget_info = ""
+            budget_info_text = ""
             if budget.get('range_type') == 'above':
-                budget_info = f"above ${budget.get('min', 0):,}"
+                budget_info_text = f"above ${budget.get('min', 0):,}"
             elif budget.get('range_type') == 'below':
-                budget_info = f"below ${budget.get('max', 0):,}"
+                budget_info_text = f"below ${budget.get('max', 0):,}"
+            
+            # Add group context to no results message
+            if budget_info and budget_info.get('has_group'):
+                group_size = budget_info.get('group_size', 1)
+                individual_budget = budget_info.get('individual_budget')
+                total_budget = budget_info.get('total_budget')
+                
+                if individual_budget and total_budget:
+                    budget_info_text = f"with {group_size} people at ${individual_budget} each (${total_budget} total)"
             
             location_info = ""
             if location.get('neighborhoods'):
                 location_info = f" in {', '.join(location['neighborhoods'])}"
             
-            response = f"💰 I searched for housing {budget_info}{location_info}, but I couldn't find any current listings matching your criteria.\n\n"
+            response = f"💰 I searched for housing {budget_info_text}{location_info}, but I couldn't find any current listings matching your criteria.{group_context}\n\n"
             response += "**Here's what you can try:**\n"
             response += "• Adjust your budget range\n"
             response += "• Try different neighborhoods\n"
             response += "• Look for shared rooms or roommate situations\n"
             response += "• Check for utilities-included options\n\n"
-            response += "Want me to search with different criteria?"
+            
+            if budget_info and budget_info.get('has_group'):
+                response += "**Group Housing Tips:**\n"
+                response += "• Consider 3-4 bedroom apartments for group living\n"
+                response += "• Look in student-friendly areas like Mission Hill or Allston\n"
+                response += "• Check for roommate matching services\n"
+                response += "• Consider utilities-included options to simplify splitting costs\n\n"
+            
+            response += "💡 **Need help?** Ask me about specific neighborhoods or budget ranges!"
         
         return response
 
@@ -1374,6 +1451,71 @@ class RoomScoutPipeline:
             suggestions.append("Get budget advice")
         
         return suggestions[:3]
+
+    def _extract_budget_and_group_info(self, message: str) -> Dict[str, Any]:
+        """Extract budget and group information from user message"""
+        import re
+        
+        budget_info = {
+            'individual_budget': None,
+            'group_size': 1,
+            'total_budget': None,
+            'per_person_cost': None,
+            'has_group': False
+        }
+        
+        message_lower = message.lower()
+        
+        # Extract group information first
+        group_keywords = ['friend', 'friends', 'roommate', 'roommates', 'split', 'splitting', 'together']
+        if any(keyword in message_lower for keyword in group_keywords):
+            budget_info['has_group'] = True
+            
+            # Extract number of people
+            people_match = re.search(r'(\d+)\s*(?:friend|friends|people|person)', message_lower)
+            if people_match:
+                budget_info['group_size'] = int(people_match.group(1))
+            elif 'friend' in message_lower or 'friends' in message_lower:
+                # Default to 2 if friends mentioned but no number
+                budget_info['group_size'] = 2
+        
+        # Extract budget amounts - look for dollar amounts
+        budget_matches = re.findall(r'\$?(\d+)', message_lower)
+        if budget_matches:
+            # Convert all matches to integers
+            budget_numbers = [int(match) for match in budget_matches]
+            
+            # If we have group info, the first reasonable budget number is likely the per-person amount
+            if budget_info['has_group']:
+                # Look for amounts that make sense as per-person budgets (typically 300-2000)
+                reasonable_budgets = [b for b in budget_numbers if 300 <= b <= 2000]
+                if reasonable_budgets:
+                    budget_info['individual_budget'] = reasonable_budgets[0]
+            else:
+                # For individual, take the first reasonable budget
+                reasonable_budgets = [b for b in budget_numbers if 300 <= b <= 3000]
+                if reasonable_budgets:
+                    budget_info['individual_budget'] = reasonable_budgets[0]
+        
+        # Calculate total budget and per-person cost
+        if budget_info['individual_budget'] and budget_info['group_size'] > 1:
+            budget_info['total_budget'] = budget_info['individual_budget'] * budget_info['group_size']
+            budget_info['per_person_cost'] = budget_info['individual_budget']
+        
+        return budget_info
+    
+    def _enhance_context_with_budget(self, context: str, budget_info: Dict[str, Any]) -> str:
+        """Enhance conversation context with budget information"""
+        enhanced_context = context
+        
+        if budget_info.get('has_group') and budget_info.get('total_budget'):
+            group_info = f"\n[CONTEXT: User mentioned splitting with {budget_info['group_size']} friends at ${budget_info['individual_budget']} each = ${budget_info['total_budget']} total budget]"
+            enhanced_context += group_info
+        elif budget_info.get('individual_budget'):
+            budget_info_str = f"\n[CONTEXT: User's budget is ${budget_info['individual_budget']} per person]"
+            enhanced_context += budget_info_str
+        
+        return enhanced_context
 
 # Initialize pipeline
 pipeline = RoomScoutPipeline()
