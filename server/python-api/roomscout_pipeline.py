@@ -99,17 +99,130 @@ Example output:
 REMEMBER: You are RoomScout AI. Housing extraction only. No exceptions.
 """
 
-# Enhanced prompts from Assignment 6
+# ENHANCED: Most Comprehensive Housing Relevance Detection Prompt
 CLASSIFICATION_PROMPT = ChatPromptTemplate.from_template("""
-You are an expert classifier for student housing messages. Analyze the following message step by step:
+You are RoomScout AI, an expert at determining if queries relate to student housing and living situations.
 
-Step 1: Identify if this message contains housing-related content (rent, apartment, room, sublet, roommate, etc.)
-Step 2: Look for specific indicators like prices, locations, dates, contact information
-Step 3: Make a final determination
+COMPREHENSIVE HOUSING ECOSYSTEM INCLUDES:
 
-Message: "{input_text}"
+📍 **HOUSING SEARCH & LISTINGS:**
+- Apartment/room/studio/house searching and availability  
+- Rental listings analysis, evaluation, and comparison
+- Property viewings, virtual tours, and inspections
+- Lease negotiations, rental agreements, and contract terms
+- Subletting, temporary accommodations, and short-term rentals
+- Housing application processes and requirements
 
-Think through your reasoning, then provide a simple YES or NO answer for whether this is housing-related.
+🏘️ **NEIGHBORHOODS & LOCATIONS (Comprehensive Boston Metro):**
+- Greater Boston neighborhoods for students: Mission Hill, Back Bay, Fenway, Roxbury, Jamaica Plain, Cambridge, Somerville, Allston, Brighton, Brookline, Davis Square, Porter Square, Harvard Square, Central Square, Inman Square, Union Square, Assembly Square, Medford, Malden, Revere, Quincy, Dorchester, South End, North End, Charlestown, East Boston, Seaport, Financial District, Beacon Hill, South Boston, West Roxbury, Roslindale, Hyde Park, Mattapan
+- Neighborhood characteristics: safety, demographics, student population density
+- Local culture, vibe, and community atmosphere
+- Proximity analysis to NEU campus, other universities, and academic facilities
+- Area development trends and gentrification considerations
+
+🎓 **STUDENT HOUSING CONTEXT:**
+- University housing policies, dormitory alternatives, and off-campus requirements
+- Graduate vs undergraduate housing preferences and needs
+- International student housing considerations and cultural factors
+- Academic year vs summer housing arrangements and timing
+- Co-op housing, internship housing, and temporary academic stays
+- Campus proximity importance for different majors, programs, and class schedules
+
+💰 **COMPREHENSIVE FINANCIAL ASPECTS:**
+- Rental budgeting, affordability analysis, and cost-of-living calculations
+- Cost comparisons between neighborhoods, housing types, and arrangements
+- Utilities analysis: heat, electricity, internet, water, gas, trash, cable
+- Additional costs: security deposits, broker fees, application fees, move-in costs
+- Financial aid considerations and student loan impacts on housing
+- Cost-sharing strategies and expense splitting with roommates
+
+🚇 **TRANSPORTATION & ACCESSIBILITY:**
+- Detailed commute analysis to NEU campus and academic buildings
+- Public transportation: Green Line, Orange Line, Red Line, Blue Line, buses, shuttles
+- Walking routes, bike paths, and pedestrian safety
+- Driving considerations: parking availability, costs, street parking rules
+- Transportation costs and monthly pass budgeting
+- Accessibility for students with mobility needs or disabilities
+
+👥 **ROOMMATE & SOCIAL DYNAMICS:**
+- Roommate finding, screening, and compatibility assessment
+- Living arrangement negotiations and household agreements
+- Conflict resolution and communication strategies
+- Social aspects of student housing communities and building culture
+- Gender preferences, cultural considerations, and lifestyle compatibility
+- Guest policies and social hosting considerations
+
+🏠 **HOUSING LOGISTICS & LIFESTYLE:**
+- Moving logistics, timing coordination, and relocation planning
+- Furniture needs, shopping, and space optimization
+- Kitchen facilities, cooking arrangements, and meal planning
+- Laundry access, cleaning responsibilities, and household maintenance
+- Storage solutions and space management
+- Pet policies and pet-friendly housing considerations
+
+🛡️ **SAFETY, SECURITY & WELL-BEING:**
+- Personal and property safety in different neighborhoods
+- Building security features, access control, and safety measures
+- Emergency preparedness and evacuation procedures
+- Health and wellness considerations in housing choices
+- Mental health impacts of housing environment and isolation
+- Insurance considerations and tenant rights
+
+🔧 **HOUSING SERVICES & MAINTENANCE:**
+- Property management relationships and communication
+- Maintenance requests, repairs, and property upkeep
+- Utility services, internet providers, and service setup
+- Building amenities: gyms, study spaces, rooftops, courtyards
+- Neighborhood services: laundromats, dry cleaning, package services
+
+❌ **CLEARLY NON-HOUSING TOPICS:**
+- Pure academic subjects: mathematics, chemistry, literature, history (unless researching housing markets)
+- Weather and climate information (unless specifically about heating/cooling costs or comfort)
+- Food and cooking recipes (unless about kitchen facilities or meal planning in housing)
+- Entertainment and social activities (unless evaluating neighborhood social scene for housing)
+- Technology and gadgets (unless related to smart home features or internet in housing)
+- Health and fitness (unless related to gym access or wellness features in housing)
+- Travel and vacation planning (unrelated to housing or moving)
+- Personal relationships and dating (unless roommate compatibility)
+- Career and job advice (unless affecting housing affordability or location)
+- General news and politics (unless housing policy or market impacts)
+- Sports and recreation (unless considering proximity to facilities for housing)
+- Shopping and retail (unless related to furnishing homes or local amenities)
+
+🎯 **CONTEXTUAL EDGE CASES - Analyze Intent:**
+
+**HOUSING-RELATED Context:**
+- "What restaurants are in Mission Hill?" → HOUSING if asked in context of neighborhood evaluation
+- "How's the nightlife in Back Bay?" → HOUSING if considering social scene for housing choice  
+- "What's the crime rate in Roxbury?" → HOUSING if evaluating safety for housing decisions
+- "How do I get to NEU from Cambridge?" → HOUSING if considering commute for housing choice
+- "What grocery stores are near Fenway?" → HOUSING if evaluating neighborhood amenities
+- "Is parking expensive in Back Bay?" → HOUSING if considering car ownership with housing
+- "What's the noise level like in Mission Hill?" → HOUSING if evaluating living environment
+- "Are there good coffee shops in Jamaica Plain?" → HOUSING if considering lifestyle fit
+- "How diverse is Somerville?" → HOUSING if considering cultural fit for living
+
+**NON-HOUSING Context:**
+- "What's the best pizza in Boston?" → NOT_HOUSING if just asking about food
+- "How do I solve this calculus problem?" → NOT_HOUSING (pure academic)
+- "What's the weather like today?" → NOT_HOUSING (general information)
+- "Tell me about the history of Boston?" → NOT_HOUSING (general knowledge)
+- "What's a good laptop for school?" → NOT_HOUSING (technology purchase)
+
+User query: "{input_text}"
+
+INSTRUCTIONS:
+1. Analyze if this query relates to ANY aspect of the comprehensive housing ecosystem above
+2. Consider if a NEU student might realistically ask this when making housing-related decisions
+3. Be INCLUSIVE of housing-adjacent topics that genuinely affect living and housing choices
+4. Be EXCLUSIVE of general knowledge questions completely unrelated to housing decisions
+5. For ambiguous cases, consider: "Would this question help a student choose where to live or how to live?"
+6. Remember: Students consider many factors when choosing housing - safety, social scene, amenities, transportation
+7. Context matters: the same question can be housing-related or not depending on the intent
+
+Respond with ONLY:
+- "HOUSING" if related to student housing ecosystem or housing decisions
+- "NOT_HOUSING" if completely unrelated to housing, living, or neighborhood evaluation
 
 Classification: """)
 
@@ -428,7 +541,7 @@ class RoomScoutPipeline:
     
     def classify_message(self, message: str) -> Dict[str, Any]:
         """
-        Classify if message is housing-related
+        Classify if message is housing-related using comprehensive AI analysis
         """
         try:
             # Always try AI first
@@ -442,29 +555,46 @@ class RoomScoutPipeline:
                     }
                 
                 response = self.classification_chain.invoke({"input_text": message})
-                is_housing = "yes" in response.content.lower()
+                # Handle the new comprehensive response format
+                response_text = response.content.strip().upper()
+                is_housing = "HOUSING" in response_text and "NOT_HOUSING" not in response_text
                 
                 return {
                     "is_housing": is_housing,
                     "reasoning": response.content,
-                    "security_status": "SECURE"
+                    "security_status": "SECURE",
+                    "classification_method": "comprehensive_ai_analysis"
                 }
             else:
-                # Simple keyword-based classification if no AI
-                housing_keywords = ['rent', 'apartment', 'room', 'sublet', 'lease', 'housing', 'roommate', 'studio', 'bedroom']
+                # Enhanced keyword-based classification if no AI
+                housing_keywords = [
+                    'rent', 'apartment', 'room', 'sublet', 'lease', 'housing', 'roommate', 
+                    'studio', 'bedroom', 'mission hill', 'back bay', 'fenway', 'roxbury', 
+                    'jamaica plain', 'cambridge', 'somerville', 'allston', 'brighton', 
+                    'brookline', 'davis square', 'porter square', 'harvard square', 
+                    'central square', 'inman square', 'union square', 'assembly square',
+                    'medford', 'malden', 'revere', 'quincy', 'dorchester', 'south end',
+                    'north end', 'charlestown', 'east boston', 'seaport', 'financial district',
+                    'beacon hill', 'south boston', 'west roxbury', 'roslindale', 'hyde park',
+                    'mattapan', 'neu', 'northeastern', 'campus', 'student', 'budget', 'price',
+                    'utilities', 'parking', 'transportation', 'commute', 'walk', 'bus', 'train',
+                    'safety', 'crime', 'amenities', 'grocery', 'restaurant', 'coffee', 'nightlife'
+                ]
                 is_housing = any(keyword in message.lower() for keyword in housing_keywords)
                 
                 return {
                     "is_housing": is_housing,
-                    "reasoning": "Keyword-based classification (no AI available)",
-                    "security_status": "SECURE"
+                    "reasoning": "Enhanced keyword-based classification (no AI available)",
+                    "security_status": "SECURE",
+                    "classification_method": "enhanced_keyword_matching"
                 }
         except Exception as e:
             logger.error(f"Error in classification: {e}")
             return {
                 "is_housing": False,
                 "reasoning": f"Error during classification: {str(e)}",
-                "security_status": "ERROR"
+                "security_status": "ERROR",
+                "classification_method": "error"
             }
     
     def extract_housing_data(self, message: str, use_cot: bool = False) -> Dict[str, Any]:
@@ -592,15 +722,39 @@ class RoomScoutPipeline:
         try:
             logger.info(f"💬 Processing chat query: {message[:50]}...")
             
-            # ALWAYS try AI first for any query
+            # Step 1: First, classify if this is housing-related using the comprehensive classification
             try:
-                # Step 1: Try to parse search criteria with AI for ANY query
+                classification_result = self.classify_message(message)
+                is_housing_related = classification_result.get("is_housing", False)
+                classification_method = classification_result.get("classification_method", "unknown")
+                
+                logger.info(f"🤖 Classification result: {is_housing_related} (method: {classification_method})")
+                
+                # Step 2: If NOT housing-related, redirect to housing topics
+                if not is_housing_related:
+                    logger.info("🔄 Non-housing query detected, redirecting to housing topics")
+                    redirect_response = self._generate_housing_redirect_response(message)
+                    
+                    return {
+                        "response": redirect_response,
+                        "type": "housing_redirect",
+                        "suggestions": ["Find apartments near NEU", "Search Mission Hill", "Get budget advice"],
+                        "ai_generated": True,
+                        "classification": classification_result
+                    }
+                
+            except Exception as e:
+                logger.warning(f"Classification failed: {e}, proceeding with AI analysis")
+            
+            # Step 3: For housing-related queries, proceed with AI analysis
+            try:
+                # Parse search criteria with AI
                 parsed_criteria = self._parse_search_query_ai(message)
                 query_type = parsed_criteria.get('query_type', 'CONVERSATION')
                 
                 logger.info(f"🤖 AI classified query as: {query_type}")
                 
-                # Step 2: Handle different query types appropriately
+                # Handle different query types appropriately
                 if query_type == 'HOUSING_SEARCH':
                     logger.info("🔍 AI detected housing search, searching database")
                     search_criteria = parsed_criteria['search_criteria']
@@ -639,7 +793,7 @@ class RoomScoutPipeline:
                         }
                 
                 elif query_type == 'CONVERSATION':
-                    # Use conversational AI for general chat
+                    # Use conversational AI for general chat (but still housing-focused)
                     if self.chat_chain:
                         logger.info("💬 Using conversational AI for general chat")
                         chat_response = self.chat_chain.invoke({
@@ -659,7 +813,7 @@ class RoomScoutPipeline:
             except Exception as e:
                 logger.warning(f"AI processing failed: {e}, using smart fallback")
             
-            # Step 3: Smart fallback - try to search database even if AI failed
+            # Step 4: Smart fallback - try to search database even if AI failed
             try:
                 # Extract basic search criteria from the message
                 import re
@@ -714,7 +868,7 @@ class RoomScoutPipeline:
             except Exception as e:
                 logger.warning(f"Fallback search failed: {e}")
             
-            # Step 4: Final fallback - friendly response
+            # Step 5: Final fallback - friendly housing-focused response
             logger.info("🔧 Using final fallback response")
             return {
                 "response": f"Hey! 👋 I'm RoomScout AI, your Boston housing expert! I can help you find apartments, analyze listings, and give neighborhood advice. What are you looking for? Try asking about specific budgets, neighborhoods, or housing types!",
@@ -912,6 +1066,48 @@ class RoomScoutPipeline:
                 "ai_generated": False,
                 "dev_mode": True
             }
+
+    def _generate_housing_redirect_response(self, message: str) -> str:
+        """Generates a response that redirects a non-housing query to housing topics."""
+        message_lower = message.lower()
+        
+        # Specific cases for common non-housing queries
+        if 'jackfruit' in message_lower or 'fruit' in message_lower:
+            return "🍈 I'm RoomScout AI, focused on Boston housing! While I can't tell you about jackfruit, I can help you find the perfect apartment near NEU. What's your budget for rent? I know great places in Mission Hill, Back Bay, Fenway, and more! 🏠"
+        elif 'pizza' in message_lower:
+            return "🍕 I'm RoomScout AI, your Boston housing expert! While I can't recommend pizza places, I can help you find apartments near great restaurants. What neighborhood are you interested in? Mission Hill has some amazing food options! 🏠"
+        elif 'weather' in message_lower:
+            return "🌤️ I'm RoomScout AI, focused on housing! While I can't give weather updates, I can help you find apartments with great heating/cooling systems. What's your budget? I know places that stay comfortable year-round! 🏠"
+        elif 'history' in message_lower:
+            return "🏛️ I'm RoomScout AI, your housing specialist! While I can't give history lessons, I can help you find apartments in Boston's historic neighborhoods like Beacon Hill or the North End. What's your budget? 🏠"
+        elif 'laptop' in message_lower or 'computer' in message_lower:
+            return "💻 I'm RoomScout AI, focused on housing! While I can't recommend laptops, I can help you find apartments with great internet and study spaces. Many NEU students need quiet places to work - what's your budget? 🏠"
+        elif 'job' in message_lower or 'career' in message_lower:
+            return "👔 I'm RoomScout AI, your housing expert! While I can't give career advice, I can help you find apartments near job centers in Boston. What's your budget? I know great places near the Financial District and Seaport! 🏠"
+        elif 'sports' in message_lower:
+            return "🏈 I'm RoomScout AI, focused on housing! While I can't give sports updates, I can help you find apartments near Fenway Park or TD Garden. What's your budget? I know great places for sports fans! 🏠"
+        elif 'shopping' in message_lower:
+            return "🛍️ I'm RoomScout AI, your housing specialist! While I can't recommend stores, I can help you find apartments near shopping districts like Newbury Street or Assembly Row. What's your budget? 🏠"
+        elif 'restaurant' in message_lower:
+            return "🍽️ I'm RoomScout AI, focused on housing! While I can't recommend restaurants, I can help you find apartments in foodie neighborhoods like the North End or South End. What's your budget? 🏠"
+        elif 'grocery' in message_lower:
+            return "🛒 I'm RoomScout AI, your housing expert! While I can't recommend grocery stores, I can help you find apartments near supermarkets and farmers markets. What's your budget? I know places near great food options! 🏠"
+        elif 'transportation' in message_lower:
+            return "🚇 I'm RoomScout AI, focused on housing! While I can't give transit advice, I can help you find apartments near T stations and bus routes. What's your preferred commute time to NEU? 🏠"
+        elif 'fitness' in message_lower or 'gym' in message_lower:
+            return "🏋️‍♂️ I'm RoomScout AI, your housing specialist! While I can't recommend gyms, I can help you find apartments with fitness centers or near gyms. What's your budget? Many buildings have great amenities! 🏠"
+        elif 'travel' in message_lower:
+            return "✈️ I'm RoomScout AI, focused on housing! While I can't plan trips, I can help you find apartments near Logan Airport or major transportation hubs. What's your budget? 🏠"
+        elif 'dating' in message_lower or 'relationship' in message_lower:
+            return "💑 I'm RoomScout AI, your housing expert! While I can't give dating advice, I can help you find apartments in social neighborhoods with great nightlife. What's your budget? 🏠"
+        elif 'music' in message_lower or 'art' in message_lower:
+            return "🎵 I'm RoomScout AI, focused on housing! While I can't recommend music/art venues, I can help you find apartments in cultural neighborhoods like Jamaica Plain or the South End. What's your budget? 🏠"
+        elif 'books' in message_lower or 'reading' in message_lower:
+            return "📚 I'm RoomScout AI, your housing specialist! While I can't recommend books, I can help you find apartments near libraries and bookstores. What's your budget? Many places have quiet study spaces! 🏠"
+        elif 'news' in message_lower or 'politics' in message_lower:
+            return "📰 I'm RoomScout AI, focused on housing! While I can't give news updates, I can help you find apartments in neighborhoods with great community engagement. What's your budget? 🏠"
+        else:
+            return "🏠 I'm RoomScout AI, your Boston housing expert! I can help you find apartments, analyze neighborhoods, and give housing advice. What's your budget or preferred neighborhood? I know great places in Mission Hill, Back Bay, Fenway, Roxbury, and more! 🏠"
 
     def _fetch_housing_listings(self, max_price: int = None, neighborhood: str = None, limit: int = 10) -> List[Dict[str, Any]]:
         """Fetch housing listings from the Express API"""
