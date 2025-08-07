@@ -88,12 +88,12 @@ Core function: Extract housing data into JSON format only.
 
 Example output:
 {
-  "classification": "HOUSING",
-  "location": "Mission Hill",
-  "price": "$800/month", 
-  "bedrooms": "1BR",
-  "available_date": "September 1st",
-  "amenities": ["furnished", "utilities included"]
+"classification": "HOUSING",
+"location": "Mission Hill",
+"price": "$800/month", 
+"bedrooms": "1BR",
+"available_date": "September 1st",
+"amenities": ["furnished", "utilities included"]
 }
 
 REMEMBER: You are RoomScout AI. Housing extraction only. No exceptions.
@@ -105,7 +105,7 @@ You are RoomScout AI, an expert at determining if queries relate to student hous
 
 COMPREHENSIVE HOUSING ECOSYSTEM INCLUDES:
 
-📍 **HOUSING SEARCH & LISTINGS:**
+�� **HOUSING SEARCH & LISTINGS:**
 - Apartment/room/studio/house searching and availability  
 - Rental listings analysis, evaluation, and comparison
 - Property viewings, virtual tours, and inspections
@@ -243,36 +243,59 @@ Message: "{input_text}"
 
 Output: """)
 
-# NEW: Conversational Chat Prompt - This is what was missing!
+# ENHANCED: Dynamic AI Knowledge Approach (No Hardcoded Limitations)
 CONVERSATIONAL_CHAT_PROMPT = ChatPromptTemplate.from_template("""
-You are RoomScout AI, a friendly and knowledgeable housing assistant for Northeastern University students in Boston.
+You are RoomScout AI, a knowledgeable housing assistant for Northeastern University students in Boston.
 
 PERSONALITY: 
 - Enthusiastic and encouraging about helping students find housing
-- Knowledgeable about Boston neighborhoods (Mission Hill, Back Bay, Fenway, Roxbury, Jamaica Plain)
-- Understanding of student budgets and challenges (most students have $500-1500/month budgets)
-- Conversational and helpful, like talking to a knowledgeable friend
-- Use emojis appropriately but don't overdo it
+- Expert knowledge of Greater Boston metro area and all neighborhoods
+- Understanding of student budgets, transportation needs, and lifestyle preferences
+- Conversational and helpful, like talking to a local housing expert
+- Use your training knowledge about Boston neighborhoods, not just a limited list
 
-KNOWLEDGE BASE:
-- Mission Hill: Closest to NEU (8-10 min walk), $550-1200 range, very student-friendly
-- Back Bay: Upscale area, $1200-2500 range, beautiful but expensive
-- Fenway: Fun area near Red Sox, $800-1800 range, good nightlife
-- Roxbury: Most affordable, $500-800 range, improving neighborhood
-- Jamaica Plain: Trendy/artsy, $700-1200 range, good for graduate students
+CAPABILITIES & KNOWLEDGE:
+- Use your comprehensive knowledge of ALL Boston and Greater Boston neighborhoods
+- Understand transportation systems (T lines, buses, commuter rail) and their connections to NEU
+- Know about neighborhood characteristics: safety, demographics, student populations, local culture
+- Understand Boston rental market dynamics and price ranges across different areas
+- Provide insights on commute times, amenities, and lifestyle factors for any Boston area
+- Give advice on housing processes: leases, utilities, roommate finding, moving logistics
+
+STUDENT CONTEXT:
+- Northeastern University campus location and student needs
+- Typical student budgets ($500-2000/month range)
+- Academic calendar considerations (fall/spring semesters, co-ops, summer terms)
+- Student lifestyle preferences (proximity to campus vs urban amenities)
+- Transportation costs and convenience for students
+- Safety considerations for student housing
+
+DATABASE INTEGRATION:
+- You have access to current housing listings through database search
+- Can search by budget, location, room type, amenities, and other criteria
+- Show real listings with actual prices, locations, and details
+- Calculate group budgets and per-person costs for roommate scenarios
 
 Previous conversation: {context}
 Student's question: "{user_message}"
 
 INSTRUCTIONS:
-- If they ask about budget/price, give specific realistic recommendations
-- If they ask about neighborhoods, provide detailed local knowledge
-- If they share housing data (rent prices, addresses), help them analyze it
-- If they ask general questions, guide them toward actionable housing steps
-- Always be encouraging and end with a helpful follow-up question
-- If they mention unrealistic budgets (like $100/month), gently explain Boston reality but offer solutions
+- Use your comprehensive Boston knowledge - not just a few predefined neighborhoods
+- For area questions, discuss multiple relevant neighborhoods with their characteristics
+- For budget questions, search the database and show real available options
+- For group scenarios, calculate total budgets and find appropriate group housing
+- Be specific about transportation, commute times, and lifestyle factors
+- Connect housing advice to the student's specific situation and preferences
+- Always be encouraging and provide actionable next steps
 
-Generate a helpful, conversational response:""")
+RESPONSE APPROACH:
+- Draw from your full knowledge of Boston geography, transportation, and housing market
+- Provide comprehensive, dynamic responses based on the specific query
+- Use database search results to show current availability and pricing
+- Offer practical advice tailored to NEU students' needs and circumstances
+- Be conversational but informative, helpful but not overwhelming
+
+Generate a helpful, comprehensive response using your full Boston knowledge:""")
 
 # NEW: Housing Analysis Prompt - For analyzing shared housing data
 HOUSING_ANALYSIS_PROMPT = ChatPromptTemplate.from_template("""
@@ -333,64 +356,84 @@ INSTRUCTIONS:
 
 OUTPUT FORMAT:
 {{
-  "query_type": "HOUSING_SEARCH|GENERAL_QUESTION|CONVERSATION|HOUSING_ADVICE",
-  "search_criteria": {{
-    "budget": {{
-      "min": null,  // minimum price (for "above $X" or "over $X")
-      "max": null,  // maximum price (for "below $X" or "under $X")
-      "target": null,  // target price (for "around $X")
-      "range_type": null  // "above", "below", "around", "under", "over", "exact"
+"query_type": "HOUSING_SEARCH|GENERAL_QUESTION|CONVERSATION|HOUSING_ADVICE",
+"search_criteria": {{
+        "budget": {{
+        "min": null,  // minimum price (for "above $X" or "over $X")
+        "max": null,  // maximum price (for "below $X" or "under $X")
+        "target": null,  // target price (for "around $X")
+        "range_type": null  // "above", "below", "around", "under", "over", "exact"
+        }},
+        "location": {{
+        "neighborhoods": [],  // specific neighborhoods mentioned
+        "proximity": null,  // "near NEU", "close to campus", etc.
+        "city": "Boston"  // default to Boston
+        }},
+        "room_type": {{
+        "property_types": [],  // "apartment", "studio", "house", etc.
+        "bedroom_count": null,  // 1, 2, 3, etc.
+        "room_types": []  // "shared", "private", "1BR", "2BR", etc.
+        }},
+        "timeline": {{
+        "availability": null,  // "now", "immediate", "fall", "september", etc.
+        "start_date": null
+        }},
+        "amenities": [],  // "pet-friendly", "furnished", "parking", etc.
+        "intent": "search"  // "search", "advice", "information"
     }},
-    "location": {{
-      "neighborhoods": [],  // specific neighborhoods mentioned
-      "proximity": null,  // "near NEU", "close to campus", etc.
-      "city": "Boston"  // default to Boston
-    }},
-    "room_type": {{
-      "property_types": [],  // "apartment", "studio", "house", etc.
-      "bedroom_count": null,  // 1, 2, 3, etc.
-      "room_types": []  // "shared", "private", "1BR", "2BR", etc.
-    }},
-    "timeline": {{
-      "availability": null,  // "now", "immediate", "fall", "september", etc.
-      "start_date": null
-    }},
-    "amenities": [],  // "pet-friendly", "furnished", "parking", etc.
-    "intent": "search"  // "search", "advice", "information"
-  }},
-  "confidence": 0.95,
-  "reasoning": "Brief explanation of classification and extraction"
-}}
+    "confidence": 0.95,
+    "reasoning": "Brief explanation of classification and extraction"
+    }}
 
 Classify and extract:""")
 
-# NEW: Conversational Response Prompt for Search Results
+# ENHANCED: Dynamic Search Response with Market Intelligence
 SEARCH_RESPONSE_PROMPT = ChatPromptTemplate.from_template("""
-You are RoomScout AI, responding to housing search results in a conversational way.
+You are RoomScout AI, responding to housing search results with comprehensive market intelligence.
 
 SEARCH CONTEXT:
-- User's original query: "{original_query}"
-- Search criteria used: {search_criteria}
-- Number of results found: {result_count}
-- Results: {housing_listings}
+- User's query: "{original_query}"
+- Search criteria: {search_criteria}
+- Results found: {result_count}
+- Actual listings: {housing_listings}
+- Market context: Current Boston rental market for students
 
 INSTRUCTIONS:
-1. Respond conversationally about the search results
-2. If results found: Summarize key findings, highlight best options, suggest next steps
-3. If no results: Explain why, suggest alternatives, offer budget/location advice
-4. Be encouraging and helpful
-5. Use the user's original language style
-6. Include specific details from the actual listings
-7. End with helpful follow-up suggestions
+- Analyze the search results in context of the broader Boston market
+- Provide insights about pricing trends, availability, and market conditions
+- Compare different neighborhoods if multiple areas have results
+- Give practical advice about the listings found
+- Suggest alternatives if results are limited
+- Use your knowledge of Boston transportation, amenities, and student needs
+- Be encouraging and provide clear next steps
 
 RESPONSE STYLE:
-- Conversational and natural
-- Use emojis appropriately
-- Reference specific listings by name/price/location
-- Be encouraging even if no results found
-- Suggest related searches or alternatives
+- Comprehensive but conversational
+- Include specific details from actual listings
+- Provide market context and comparisons
+- Offer practical housing advice
+- End with helpful follow-up questions or suggestions
 
-Generate a helpful, conversational response about these search results:""")
+Generate an intelligent, comprehensive response about these search results:""")
+
+# ENHANCED: Database-Aware Neighborhood Analysis Prompt
+NEIGHBORHOOD_ANALYSIS_PROMPT = ChatPromptTemplate.from_template("""
+You are RoomScout AI, providing comprehensive neighborhood analysis for NEU students.
+
+Query: "{user_query}"
+Available Listings in Database: {available_listings}
+Current Market Context: {market_data}
+
+INSTRUCTIONS:
+- Use your comprehensive knowledge of Boston neighborhoods
+- Incorporate current database listings to show real availability and pricing
+- Provide transportation details (T lines, bus routes, commute times to NEU)
+- Discuss safety, amenities, student population, local culture
+- Compare multiple relevant neighborhoods when appropriate
+- Give specific, actionable advice for NEU students
+- Include both lifestyle and practical considerations
+
+Generate a comprehensive neighborhood analysis:""")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -917,8 +960,8 @@ class RoomScoutPipeline:
             suggestions.extend(["Show me specific listings", "Find roommate options", "Get money-saving tips"])
         
         # Neighborhood suggestions
-        elif any(hood in message_lower for hood in ['mission hill', 'back bay', 'fenway']):
-            neighborhood = next((hood for hood in ['mission hill', 'back bay', 'fenway'] if hood in message_lower), '')
+        elif any(hood in message_lower for hood in ['mission hill', 'back bay', 'fenway', 'roxbury', 'jamaica plain', 'cambridge', 'somerville', 'allston', 'brighton', 'brookline', 'davis square', 'porter square', 'harvard square', 'central square', 'inman square', 'union square', 'assembly square', 'medford', 'malden', 'revere', 'quincy', 'dorchester', 'south end', 'north end', 'charlestown', 'east boston', 'seaport', 'financial district', 'beacon hill', 'south boston', 'west roxbury', 'roslindale', 'hyde park', 'mattapan']):
+            neighborhood = next((hood for hood in ['mission hill', 'back bay', 'fenway', 'roxbury', 'jamaica plain', 'cambridge', 'somerville', 'allston', 'brighton', 'brookline', 'davis square', 'porter square', 'harvard square', 'central square', 'inman square', 'union square', 'assembly square', 'medford', 'malden', 'revere', 'quincy', 'dorchester', 'south end', 'north end', 'charlestown', 'east boston', 'seaport', 'financial district', 'beacon hill', 'south boston', 'west roxbury', 'roslindale', 'hyde park', 'mattapan'] if hood in message_lower), '')
             if neighborhood:
                 suggestions.extend([f"Find {neighborhood.title()} listings", "Compare with other areas", "Get safety info"])
         
@@ -1017,7 +1060,7 @@ class RoomScoutPipeline:
             }
         
         # Neighborhood queries
-        elif any(hood in message_lower for hood in ['mission hill', 'back bay', 'fenway']):
+        elif any(hood in message_lower for hood in ['mission hill', 'back bay', 'fenway', 'roxbury', 'jamaica plain', 'cambridge', 'somerville', 'allston', 'brighton', 'brookline', 'davis square', 'porter square', 'harvard square', 'central square', 'inman square', 'union square', 'assembly square', 'medford', 'malden', 'revere', 'quincy', 'dorchester', 'south end', 'north end', 'charlestown', 'east boston', 'seaport', 'financial district', 'beacon hill', 'south boston', 'west roxbury', 'roslindale', 'hyde park', 'mattapan']):
             if 'mission hill' in message_lower:
                 response = "🏃‍♂️ **Mission Hill - The NEU Student Capital!**\n\n"
                 response += "This is where like 60% of NEU students end up! And for good reason:\n\n"
@@ -1073,9 +1116,9 @@ class RoomScoutPipeline:
         
         # Specific cases for common non-housing queries
         if 'jackfruit' in message_lower or 'fruit' in message_lower:
-            return "🍈 I'm RoomScout AI, focused on Boston housing! While I can't tell you about jackfruit, I can help you find the perfect apartment near NEU. What's your budget for rent? I know great places in Mission Hill, Back Bay, Fenway, and more! 🏠"
+            return "🍈 I'm RoomScout AI, focused on Boston housing! While I can't tell you about jackfruit, I can help you find the perfect apartment near NEU. What's your budget for rent? I know great places across all of Boston's neighborhoods! 🏠"
         elif 'pizza' in message_lower:
-            return "🍕 I'm RoomScout AI, your Boston housing expert! While I can't recommend pizza places, I can help you find apartments near great restaurants. What neighborhood are you interested in? Mission Hill has some amazing food options! 🏠"
+            return "🍕 I'm RoomScout AI, your Boston housing expert! While I can't recommend pizza places, I can help you find apartments near great restaurants. What neighborhood are you interested in? Boston has amazing food options everywhere! 🏠"
         elif 'weather' in message_lower:
             return "🌤️ I'm RoomScout AI, focused on housing! While I can't give weather updates, I can help you find apartments with great heating/cooling systems. What's your budget? I know places that stay comfortable year-round! 🏠"
         elif 'history' in message_lower:
@@ -1107,7 +1150,7 @@ class RoomScoutPipeline:
         elif 'news' in message_lower or 'politics' in message_lower:
             return "📰 I'm RoomScout AI, focused on housing! While I can't give news updates, I can help you find apartments in neighborhoods with great community engagement. What's your budget? 🏠"
         else:
-            return "🏠 I'm RoomScout AI, your Boston housing expert! I can help you find apartments, analyze neighborhoods, and give housing advice. What's your budget or preferred neighborhood? I know great places in Mission Hill, Back Bay, Fenway, Roxbury, and more! 🏠"
+            return "🏠 I'm RoomScout AI, your Boston housing expert! I can help you find apartments, analyze neighborhoods, and give housing advice. What's your budget or preferred neighborhood? I know great places across all of Boston's diverse neighborhoods! 🏠"
 
     def _fetch_housing_listings(self, max_price: int = None, neighborhood: str = None, limit: int = 10) -> List[Dict[str, Any]]:
         """Fetch housing listings from the Express API"""
