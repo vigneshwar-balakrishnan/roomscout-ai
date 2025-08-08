@@ -1,0 +1,1 @@
+8/7/2025, 2:30 pm - John Doe: 🏠 *Permanent Accommodation Available-X POST http://localhost:5000/api/upload/process-file -F file=@test_housing.txt | python -m json.tool 1 hall spot in a 3BHK, $575/month + utilities. 1 Cornelia Ct, Boston. 12 mins walk to NEU. DM +1 857-891-9600.

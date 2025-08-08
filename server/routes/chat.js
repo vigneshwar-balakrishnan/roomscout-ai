@@ -70,7 +70,7 @@ const pythonAPIClient = {
             const response = await axios.post(`${this.baseURL}/batch-process`, {
                 messages: messages
             }, {
-                timeout: 60000,
+                timeout: 300000,
                 headers: { 'Content-Type': 'application/json' }
             });
             console.log(`📥 LangChain batch response: ${response.status}`);
@@ -117,7 +117,7 @@ router.post('/chat-query', async (req, res) => {
                 context: context,
                 user_id: user_id
             }, {
-                timeout: 30000,
+                timeout: 60000, // Increased from 30000 to 60000 (60 seconds)
                 headers: { 'Content-Type': 'application/json' }
             });
 
@@ -302,6 +302,74 @@ router.get('/python-health', async (req, res) => {
             express_api: 'healthy',
             python_api: 'unhealthy',
             error: error.message
+        });
+    }
+});
+
+// ADD THIS NEW ENDPOINT - Extract and save to database
+router.post('/extract-and-save', async (req, res) => {
+    try {
+        const { message, user_id } = req.body;
+        
+        console.log('🔍 Extract and save request:', message.substring(0, 50) + '...');
+        
+        if (!message?.trim()) {
+            return res.status(400).json({
+                success: false,
+                error: "No message provided"
+            });
+        }
+
+        // Try to get response from Python API with increased timeout
+        try {
+            console.log('🔍 Attempting to connect to Python API at:', `${pythonAPIClient.baseURL}/extract-and-save`);
+            const pythonResponse = await axios.post(`${pythonAPIClient.baseURL}/extract-and-save`, {
+                message: message.trim(),
+                user_id: user_id
+            }, {
+                timeout: 60000, // Increased to 60 seconds for extraction
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = pythonResponse.data;
+            console.log('✅ Python API extraction completed');
+            
+            res.json({
+                success: true,
+                extraction_result: result.extraction_result,
+                saved_to_database: result.saved_to_database,
+                timestamp: result.timestamp
+            });
+
+        } catch (pythonError) {
+            console.log('⚠️ Python API unavailable, using fallback extraction');
+            console.log('❌ Python API error details:', pythonError.message);
+            console.log('❌ Python API error code:', pythonError.code);
+            console.log('❌ Python API error response:', pythonError.response?.data);
+            
+            // Fallback to basic extraction without database save
+            const fallbackResult = {
+                success: false,
+                error: 'Python API unavailable',
+                extraction_result: {
+                    input_text: message,
+                    is_housing: false,
+                    extracted_data: {},
+                    confidence_score: 0.0,
+                    extraction_method: 'fallback'
+                },
+                saved_to_database: false
+            };
+            
+            res.json(fallbackResult);
+        }
+
+    } catch (error) {
+        console.error('❌ Extract and save error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: error.message
         });
     }
 });
@@ -545,7 +613,7 @@ router.post('/upload-file', upload.single('file'), async (req, res) => {
             
             const batchResults = await pythonAPIClient.batchProcess(batch);
             
-            if (batchResults.success) {
+            if (batchResults.results) {
                 allResults.push(...batchResults.results);
             } else {
                 console.log(`⚠️ Batch ${Math.floor(i/batchSize) + 1} failed, using fallback for this batch`);

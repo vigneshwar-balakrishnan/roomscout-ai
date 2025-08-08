@@ -46,6 +46,13 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100 // limit each IP to 100 requests per windowMs
 });
+
+// More lenient rate limiting for AI-extracted endpoints
+const aiExtractedLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500 // limit each IP to 500 requests per windowMs for AI operations
+});
+
 app.use(limiter);
 
 app.use(express.json({ limit: '10mb' }));
@@ -60,6 +67,9 @@ app.use('/api/housing', housingRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
+
+// Apply more lenient rate limiting to AI-extracted endpoint
+app.use('/api/housing/ai-extracted', aiExtractedLimiter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

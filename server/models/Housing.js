@@ -271,6 +271,13 @@ const housingSchema = new mongoose.Schema({
     index: true
   },
   
+  // Source of the listing
+  source: {
+    type: String,
+    enum: ['manual_entry', 'extracted_from_chat', 'api_import', 'file_upload'],
+    default: 'manual_entry'
+  },
+  
   // Vector embeddings for future RAG
   vectorEmbedding: [{ type: Number }],
   

@@ -3,6 +3,7 @@ import json
 import logging
 import time
 import requests
+import re
 from typing import Dict, Any, List, Optional, TypedDict
 from datetime import datetime
 
@@ -226,20 +227,30 @@ Respond with ONLY:
 
 Classification: """)
 
-# Few-shot extraction prompt from Assignment 6
+# FIXED: Enhanced Extraction Prompt with Real Examples
 EXTRACTION_PROMPT = ChatPromptTemplate.from_template("""
-Extract housing information from WhatsApp messages. Here are examples:
+Extract housing information from WhatsApp messages. Here are examples matching real message formats:
 
-Example 1:
-Message: "Studio apt available Back Bay area $2200/month utilities included available now call Mike 857-123-4567"
-Output: {{"rent_price": "$2200/month", "location": "Back Bay area", "room_type": "Studio apartment", "availability_date": "available now", "contact_info": "Mike 857-123-4567", "gender_preference": null, "additional_notes": "utilities included", "is_housing_related": true}}
+Example 1 - Real WhatsApp Format:
+Message: "🏠 *Permanent Accommodation Available!* 1 hall spot in a 3BHK, $575/month + utilities. 1 Cornelia Ct, Boston. 12 mins walk to NEU. DM +1 857-891-9600."
+Output: {{"rent_price": "$575/month", "location": "1 Cornelia Ct, Boston", "room_type": "hall spot", "availability_date": "Available now", "contact_info": "+1 857-891-9600", "gender_preference": null, "additional_notes": "utilities included, 12 mins walk to NEU", "is_housing_related": true}}
 
-Example 2:
-Message: "Hey what's everyone doing tonight?"
+Example 2 - Multi-line Format:
+Message: "Permanent Accommodation starting December 16 / January 1st
+Available in a mix gender 3BHK 1.5 bath apartment.
+Rent - $575 p.m + electricity & Wi-Fi
+📍 1 Cornelia Ct (Mission Main Apartments), Boston, MA
+Contact : +1 857-891-9600"
+Output: {{"rent_price": "$575/month", "location": "1 Cornelia Ct (Mission Main Apartments), Boston, MA", "room_type": "3BHK", "availability_date": "December 16 / January 1st", "contact_info": "+1 857-891-9600", "gender_preference": "mix gender", "additional_notes": "electricity & Wi-Fi additional", "is_housing_related": true}}
+
+Example 3 - Non-housing:
+Message: "Good morning everyone! Hope you all had a great weekend!"
 Output: {{"rent_price": null, "location": null, "room_type": null, "availability_date": null, "contact_info": null, "gender_preference": null, "additional_notes": null, "is_housing_related": false}}
 
 Now extract information from this message:
 Message: "{input_text}"
+
+IMPORTANT: Return valid JSON even if some fields are missing. Use null for missing information.
 
 Output: """)
 
@@ -453,7 +464,8 @@ else:
         llm = ChatOpenAI(
             model=MODEL_NAME,
             temperature=0.1,
-            max_tokens=500  # Reduced from 1000 to save tokens
+            max_tokens=500,  # Reduced from 1000 to save tokens
+            request_timeout=60  # Increased timeout to 60 seconds
         )
         logger.info(f"Using model: {MODEL_NAME}")
     except Exception as e:
@@ -501,24 +513,31 @@ class RoomScoutPipeline:
         except Exception as e:
             logger.warning(f"⚠️ Failed to initialize LangSmith: {e}")
         
-        # Initialize AI chains only if OpenAI is available
+        # FIXED: Initialize AI chains with robust error handling
         if self.ai_available and self.llm:
             logger.info("🤖 Initializing AI chains with LangChain...")
             self.classification_chain = CLASSIFICATION_PROMPT | self.llm
+            
+            # FIXED: Use JsonOutputParser directly (OutputFixingParser not available in this version)
+            from langchain_core.output_parsers import JsonOutputParser
             self.extraction_chain = EXTRACTION_PROMPT | self.llm | JsonOutputParser()
+            
             self.chat_chain = CONVERSATIONAL_CHAT_PROMPT | self.llm
             self.analysis_chain = HOUSING_ANALYSIS_PROMPT | self.llm
             self.search_query_chain = SEARCH_QUERY_PROMPT | self.llm | JsonOutputParser()
             self.search_response_chain = SEARCH_RESPONSE_PROMPT | self.llm
-            logger.info("✅ All AI chains initialized successfully")
+            logger.info("✅ All AI chains initialized with robust error handling")
         else:
-            logger.warning("⚠️ AI chains not available - system will use limited functionality")
+            logger.warning("⚠️ AI chains not available - system will use enhanced fallbacks")
             self.classification_chain = None
             self.extraction_chain = None
             self.chat_chain = None
             self.analysis_chain = None
             self.search_query_chain = None
             self.search_response_chain = None
+        
+        # Initialize development mode
+        self.development_mode = os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true'
         
         # Initialize metrics
         self.metrics = {
@@ -532,17 +551,34 @@ class RoomScoutPipeline:
         }
     
     def parse_whatsapp_message(self, raw_message: str) -> Dict[str, Any]:
-        """
-        Parse WhatsApp message format and extract the actual message content
-        """
+        """Extract message content after phone number in WhatsApp format"""
         try:
-            # Simple parsing - extract message content
             lines = raw_message.strip().split('\n')
             message_content = ""
+            found_message_start = False
             
             for line in lines:
-                if line.strip() and not line.startswith('[') and not ':' in line[:20]:
-                    message_content += line.strip() + " "
+                line = line.strip()
+                if not line:
+                    if found_message_start:
+                        message_content += "\n"
+                    continue
+                    
+                # Check if this is a timestamp line with phone number
+                if " - " in line and ("am" in line or "pm" in line):
+                    if ": " in line:
+                        parts = line.split(": ", 1)
+                        if len(parts) > 1:
+                            message_content = parts[1]
+                            found_message_start = True
+                            continue
+                elif found_message_start:
+                    message_content += "\n" + line
+                elif "joined using" in line or "changed to" in line or "created group" in line:
+                    continue
+            
+            if not message_content.strip():
+                message_content = raw_message
             
             return {
                 "original": raw_message,
@@ -641,50 +677,145 @@ class RoomScoutPipeline:
             }
     
     def extract_housing_data(self, message: str, use_cot: bool = False) -> Dict[str, Any]:
-        """
-        Extract housing data from message
-        """
         try:
-            # Always try AI first
-            if self.llm:
-                if use_cot:
-                    # Chain of thought approach
+            if self.llm and self.extraction_chain:
+                try:
                     response = self.extraction_chain.invoke({"input_text": message})
-                else:
-                    # Direct extraction
-                    response = self.extraction_chain.invoke({"input_text": message})
-                
-                return {
-                    "extracted_data": response,
-                    "confidence_score": 0.8,
-                    "extraction_method": "few_shot" if not use_cot else "chain_of_thought"
-                }
-            else:
-                # Simple extraction if no AI available
-                extracted_data = {
-                    "rent_price": "$1500/month" if "rent" in message.lower() else None,
-                    "location": "Boston" if "boston" in message.lower() else None,
-                    "room_type": "Studio" if "studio" in message.lower() else "Apartment",
-                    "availability_date": "Available now",
-                    "contact_info": None,
-                    "gender_preference": None,
-                    "additional_notes": "Simple extraction (no AI available)",
-                    "is_housing_related": True
-                }
-                
-                return {
-                    "extracted_data": extracted_data,
-                    "confidence_score": 0.6,
-                    "extraction_method": "simple_extraction"
-                }
+                    if isinstance(response, dict) and (response.get("rent_price") or response.get("location")):
+                        return {
+                            "extracted_data": response,
+                            "confidence_score": 0.9,
+                            "extraction_method": "ai_extraction"
+                        }
+                except Exception as e:
+                    logger.error(f"AI extraction failed: {e}")
+            
+            # Rule-based fallback
+            extracted_data = self._robust_rule_based_extraction(message)
+            return {
+                "extracted_data": extracted_data,
+                "confidence_score": 0.7,
+                "extraction_method": "rule_based_fallback"
+            }
         except Exception as e:
-            logger.error(f"Error in extraction: {e}")
+            logger.error(f"Complete extraction failure: {e}")
             return {
                 "extracted_data": {},
                 "confidence_score": 0.0,
-                "extraction_method": "error",
-                "error": str(e)
+                "extraction_method": "error"
             }
+
+    def _robust_rule_based_extraction(self, message: str) -> Dict[str, Any]:
+        """
+        FIXED: Robust rule-based extraction that handles real WhatsApp formats
+        """
+        import re
+        
+        extracted = {
+            "rent_price": None,
+            "location": None,
+            "room_type": None,
+            "availability_date": None,
+            "contact_info": None,
+            "gender_preference": None,
+            "additional_notes": None,
+            "is_housing_related": True
+        }
+        
+        # Enhanced price extraction
+        price_patterns = [
+            r'\$(\d+(?:,\d{3})*(?:\.\d{2})?)\s*(?:/month|/mo|per month|p\.m)',
+            r'Rent[:\s-]+\$?(\d+(?:,\d{3})*)',
+            r'\$(\d+(?:,\d{3})*)\s*(?:month|monthly)'
+        ]
+        for pattern in price_patterns:
+            match = re.search(pattern, message, re.IGNORECASE)
+            if match:
+                extracted["rent_price"] = f"${match.group(1)}/month"
+                break
+        
+        # Enhanced location extraction
+        location_patterns = [
+            r'📍\s*(?:Location[:\s]*)?([^📍\n]+?)(?:\n|$)',
+            r'Address[:\s]+([^📍\n]+?)(?:\n|$)',
+            r'(\d+\s+[A-Za-z\s]+(?:St|Street|Ave|Avenue|Rd|Road|Ct|Court|Pl|Place))',
+            r'(Mission Main|Back Bay|Fenway|Brighton|Allston|Jamaica Plain|Roxbury|Cambridge|Somerville|Malden)'
+        ]
+        for pattern in location_patterns:
+            match = re.search(pattern, message, re.IGNORECASE)
+            if match:
+                extracted["location"] = match.group(1).strip()
+                break
+        
+        # Enhanced room type extraction
+        room_patterns = [
+            r'(\d+\s*(?:hall spot|private room|shared room|bedroom))',
+            r'(hall spot|private room|shared room)',
+            r'(\d+B\d+B|\d+BHK|\d+\s*bed)',
+            r'(studio|apartment)'
+        ]
+        for pattern in room_patterns:
+            match = re.search(pattern, message, re.IGNORECASE)
+            if match:
+                extracted["room_type"] = match.group(1).strip()
+                break
+        
+        # Enhanced date extraction
+        date_patterns = [
+            r'(?:starting|available|move-in)[:\s]*([^📍\n]+?)(?:\n|$)',
+            r'(\w+\s+\d+(?:st|nd|rd|th)?,?\s+\d{4})',
+            r'(July|August|September|October|November|December)\s+\d+',
+            r'(\d+(?:st|nd|rd|th)?\s+(?:July|August|September|October|November|December))'
+        ]
+        for pattern in date_patterns:
+            match = re.search(pattern, message, re.IGNORECASE)
+            if match:
+                extracted["availability_date"] = match.group(1).strip()
+                break
+        
+        # Enhanced contact extraction
+        contact_patterns = [
+            r'\+\d{1,3}\s*\(?\d{3}\)?\s*\d{3}[-\s]?\d{4}',
+            r'\+\d{2}\s*\d{5}\s*\d{5}',
+            r'DM[:\s]*([^📍\n]+?)(?:\n|$)',
+            r'Contact[:\s]*([^📍\n]+?)(?:\n|$)'
+        ]
+        for pattern in contact_patterns:
+            match = re.search(pattern, message, re.IGNORECASE)
+            if match:
+                extracted["contact_info"] = match.group().strip() if pattern.startswith(r'\+') else match.group(1).strip()
+                break
+        
+        # Enhanced gender preference extraction  
+        gender_patterns = [
+            r'(all girls?|girls? only|female only)',
+            r'(all boys?|boys? only|male only)',
+            r'(mix gender|mixed gender|mixed-gender)'
+        ]
+        for pattern in gender_patterns:
+            match = re.search(pattern, message, re.IGNORECASE)
+            if match:
+                extracted["gender_preference"] = match.group(1).strip()
+                break
+        
+        # Enhanced additional notes
+        notes = []
+        note_patterns = [
+            r'(utilities included|utilities[\s\w]*included)',
+            r'(furnished|fully furnished)',
+            r'(vegetarian|veg only|no food preference)',
+            r'(no broker fee|no brokerage)',
+            r'(parking available|parking included)',
+            r'(laundry[\s\w]*building|in-house laundry|in-unit laundry)'
+        ]
+        for pattern in note_patterns:
+            matches = re.findall(pattern, message, re.IGNORECASE)
+            notes.extend(matches)
+        
+        if notes:
+            extracted["additional_notes"] = ", ".join(notes[:3])  # Limit to 3 notes
+        
+        return extracted
     
     def validate_extracted_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -705,28 +836,73 @@ class RoomScoutPipeline:
     
     def process_message(self, message: str) -> Dict[str, Any]:
         """
-        Complete pipeline processing
+        FIXED: Complete pipeline processing with proper extraction integration
         """
         start_time = time.time()
         
         try:
-            # Step 1: Parse message
+            # Step 1: Parse message (FIXED)
             parsed = self.parse_whatsapp_message(message)
+            logger.info(f"📝 Parsed message: {parsed['parsed'][:100]}...")
             
-            # Step 2: Classify
+            # Step 2: Classify (working)
             classification = self.classify_message(parsed["parsed"])
+            logger.info(f"🤖 Classification: {classification['is_housing']} - {classification.get('reasoning', '')[:50]}...")
             
-            # Step 3: Extract if housing-related
+            # Step 3: Extract if housing-related (FIXED)
             extracted_data = {}
             extraction_result = {"confidence_score": 0.0}
+            saved_to_db = False
             
             if classification["is_housing"]:
+                logger.info("🔍 Message classified as housing - attempting extraction")
                 extraction_result = self.extract_housing_data(parsed["parsed"])
                 extracted_data = extraction_result["extracted_data"]
+                
+                # FIXED: Validate extraction actually worked
+                logger.info(f"🔍 Checking extraction condition...")
+                logger.info(f"🔍 extracted_data exists: {bool(extracted_data)}")
+                logger.info(f"🔍 extracted_data type: {type(extracted_data)}")
+                logger.info(f"🔍 extracted_data content: {extracted_data}")
+                
+                # Check if extraction was successful by looking at the extraction method
+                extraction_method = extraction_result.get('extraction_method', 'none')
+                is_successful_extraction = extraction_method in ['ai_extraction', 'rule_based_fallback']
+                
+                logger.info(f"🔍 Extraction method: {extraction_method}")
+                logger.info(f"🔍 Is successful extraction: {is_successful_extraction}")
+                
+                if is_successful_extraction and extracted_data:
+                    logger.info(f"✅ Extraction successful: {extraction_result['extraction_method']}")
+                    logger.info(f"🔍 Extracted data: {extracted_data}")
+                    logger.info(f"🔍 Has rent_price: {bool(extracted_data.get('rent_price'))}")
+                    logger.info(f"🔍 Has location: {bool(extracted_data.get('location'))}")
+                    
+                    # Save to database if extraction was successful
+                    try:
+                        logger.info("💾 Attempting to save extracted listing to database...")
+                        save_result = self.save_extracted_listing_to_db(
+                            extracted_data, 
+                            parsed["parsed"],
+                            user_id=None  # Can be enhanced to pass user_id
+                        )
+                        logger.info(f"💾 Save result: {save_result}")
+                        if save_result["success"]:
+                            logger.info(f"💾 Successfully saved listing to database: {save_result.get('listing_id')}")
+                            saved_to_db = True
+                        else:
+                            logger.warning(f"⚠️ Failed to save listing: {save_result.get('error')}")
+                    except Exception as e:
+                        logger.error(f"❌ Error saving to database: {e}")
+                else:
+                    logger.warning("⚠️ Extraction not successful or no data")
+                    logger.warning(f"🔍 Extracted data: {extracted_data}")
                 
                 # Step 4: Validate
                 validation = self.validate_extracted_data(extracted_data)
                 extracted_data["validation"] = validation
+            else:
+                logger.info("ℹ️ Message not housing-related - skipping extraction")
             
             processing_time = time.time() - start_time
             
@@ -737,15 +913,17 @@ class RoomScoutPipeline:
                 "extracted_data": extracted_data,
                 "processing_time": processing_time,
                 "errors": [],
-                "confidence_score": extraction_result.get("confidence_score", 0.0) if classification["is_housing"] else 0.0,
-                "security_status": classification["security_status"],
+                "confidence_score": extraction_result.get("confidence_score", 0.0),
+                "security_status": classification.get("security_status", "SECURE"),
                 "timestamp": parsed["timestamp"],
-                "development_mode": False, # Always False now
-                "model_used": MODEL_NAME if self.llm else "simulated"
+                "development_mode": False,
+                "model_used": MODEL_NAME if self.llm else "simulated",
+                "extraction_method": extraction_result.get("extraction_method", "none"),
+                "saved_to_database": saved_to_db
             }
             
         except Exception as e:
-            logger.error(f"Error in complete pipeline: {e}")
+            logger.error(f"❌ Error in complete pipeline: {e}")
             return {
                 "input_text": message,
                 "is_housing": False,
@@ -756,8 +934,9 @@ class RoomScoutPipeline:
                 "confidence_score": 0.0,
                 "security_status": "ERROR",
                 "timestamp": datetime.now().isoformat(),
-                "development_mode": False, # Always False now
-                "model_used": MODEL_NAME if self.llm else "simulated"
+                "development_mode": False,
+                "model_used": MODEL_NAME if self.llm else "simulated",
+                "extraction_method": "error"
             }
 
     def generate_ai_chat_response(self, message: str, context: str = "") -> Dict[str, Any]:
@@ -911,36 +1090,93 @@ class RoomScoutPipeline:
             except Exception as e:
                 logger.warning(f"Fallback search failed: {e}")
             
-            # Step 5: Final fallback - friendly housing-focused response
-            logger.info("🔧 Using final fallback response")
-            return {
-                "response": f"Hey! 👋 I'm RoomScout AI, your Boston housing expert! I can help you find apartments, analyze listings, and give neighborhood advice. What are you looking for? Try asking about specific budgets, neighborhoods, or housing types!",
-                "type": "friendly_engagement",
-                "suggestions": ["Find apartments under $1500", "Search Mission Hill", "Get neighborhood info"],
-                "ai_generated": False
-            }
+            # Step 5: Use AI chat chain as primary fallback if available
+            if self.chat_chain and self.ai_chains_available:
+                logger.info("🤖 Using AI chat chain as fallback")
+                try:
+                    chat_response = self.chat_chain.invoke({
+                        "user_message": message,
+                        "context": context
+                    })
+                    
+                    suggestions = self._generate_contextual_suggestions(message, chat_response.content)
+                    
+                    return {
+                        "response": chat_response.content,
+                        "type": "ai_conversation", 
+                        "suggestions": suggestions,
+                        "ai_generated": True
+                    }
+                except Exception as ai_error:
+                    logger.warning(f"AI chat chain failed: {ai_error}")
+            
+            # Step 5.5: Simulated AI response for testing (when no OpenAI key)
+            elif self.development_mode:
+                logger.info("🤖 Using simulated AI response for testing")
+                simulated_ai_response = self._generate_simulated_ai_response(message, context)
+                return {
+                    "response": simulated_ai_response,
+                    "type": "simulated_ai_conversation",
+                    "suggestions": ["Find apartments", "Get neighborhood info", "Search listings"],
+                    "ai_generated": True,
+                    "simulated": True
+                }
+            
+            # Step 6: Smart dev response as final fallback
+            logger.info("🔧 Using smart dev response as final fallback")
+            smart_response = self._generate_smart_dev_response(message, context)
+            return smart_response
                 
         except Exception as e:
             logger.error(f"Error in AI chat response: {e}")
-            return {
-                "response": f"Hey! 😅 I hit a technical snag, but I'm still here to help! I'm RoomScout AI and I know Boston housing inside and out. What are you looking for near NEU?",
-                "type": "error_recovery",
-                "suggestions": ["Find budget apartments", "Get neighborhood info", "Upload WhatsApp file"],
-                "ai_generated": False
-            }
+            # Try AI chat chain as error recovery if available
+            if self.chat_chain and self.ai_chains_available:
+                logger.info("🤖 Trying AI chat chain as error recovery")
+                try:
+                    chat_response = self.chat_chain.invoke({
+                        "user_message": message,
+                        "context": context
+                    })
+                    
+                    suggestions = self._generate_contextual_suggestions(message, chat_response.content)
+                    
+                    return {
+                        "response": chat_response.content,
+                        "type": "ai_conversation_error_recovery", 
+                        "suggestions": suggestions,
+                        "ai_generated": True
+                    }
+                except Exception as ai_error:
+                    logger.warning(f"AI chat chain error recovery failed: {ai_error}")
+            
+            # Use smart dev response as final error recovery
+            try:
+                smart_response = self._generate_smart_dev_response(message, context)
+                smart_response["type"] = "error_recovery"
+                return smart_response
+            except Exception as fallback_error:
+                logger.error(f"Smart dev response also failed: {fallback_error}")
+                return {
+                    "response": f"Hey! 😅 I hit a technical snag, but I'm still here to help! I'm RoomScout AI and I know Boston housing inside and out. What are you looking for near NEU?",
+                    "type": "error_recovery",
+                    "suggestions": ["Find budget apartments", "Get neighborhood info", "Upload WhatsApp file"],
+                    "ai_generated": False
+                }
 
     def _generate_analysis_suggestions(self, extracted_data: Dict[str, Any]) -> List[str]:
         """Generate suggestions based on extracted housing data"""
         suggestions = []
         
         if extracted_data.get("location"):
-            location = extracted_data["location"].lower()
-            suggestions.append(f"Find more in {extracted_data['location']}")
-            
-            if "mission hill" in location:
-                suggestions.append("Compare Mission Hill options")
-            elif "back bay" in location:
-                suggestions.append("Get Back Bay market info")
+            location = extracted_data["location"]
+            if location and isinstance(location, str):
+                location_lower = location.lower()
+                suggestions.append(f"Find more in {location}")
+                
+                if "mission hill" in location_lower:
+                    suggestions.append("Compare Mission Hill options")
+                elif "back bay" in location_lower:
+                    suggestions.append("Get Back Bay market info")
                 
         if extracted_data.get("rent_price"):
             suggestions.append("Find similar price range")
@@ -1083,6 +1319,30 @@ class RoomScoutPipeline:
                 
                 suggestions = ["Find Back Bay deals", "Compare costs with other areas", "Get budget strategies"]
             
+            elif 'roxbury' in message_lower:
+                response = "🏘️ **Roxbury - Up and Coming!**\n\n"
+                response += "Roxbury is getting more popular with students for good reasons:\n\n"
+                response += "💰 **$600-900** - much more affordable than other areas!\n"
+                response += "🚇 **Orange Line** access to downtown and NEU\n"
+                response += "🏪 **Dudley Square** has great shopping and food\n"
+                response += "🌳 **Franklin Park** for outdoor activities\n\n"
+                response += "**Student vibe**: It's becoming more student-friendly with new developments. Want me to show you some specific Roxbury options?"
+                
+                suggestions = ["Find Roxbury listings", "Learn about Dudley Square", "Get safety info"]
+            
+            else:
+                # Generic neighborhood response for other areas
+                response = f"🏠 I see you're interested in Boston neighborhoods! I know all the areas well.\n\n"
+                response += "**Quick neighborhood guide**:\n"
+                response += "• **Mission Hill**: Closest to NEU, student central\n"
+                response += "• **Back Bay**: Upscale, expensive but beautiful\n"
+                response += "• **Roxbury**: Affordable, up and coming\n"
+                response += "• **Jamaica Plain**: Artsy, laid-back vibe\n"
+                response += "• **Allston/Brighton**: College town feel\n\n"
+                response += "What's most important to you - being close to campus, budget, or neighborhood vibe?"
+                
+                suggestions = ["Find listings in this area", "Compare neighborhoods", "Get budget advice"]
+            
             return {
                 "response": response,
                 "type": "neighborhood_expertise",
@@ -1110,6 +1370,26 @@ class RoomScoutPipeline:
                 "dev_mode": True
             }
 
+    def _generate_simulated_ai_response(self, message: str, context: str) -> str:
+        """Generate simulated AI responses that feel like real GPT responses"""
+        message_lower = message.lower()
+        
+        # Simulate AI understanding and responses
+        if any(word in message_lower for word in ['mission hill', 'mission']):
+            return "🏃‍♂️ **Mission Hill** is absolutely the go-to neighborhood for NEU students! Here's what makes it special:\n\n**Location & Convenience**:\n• 8-minute walk to Northeastern campus\n• Orange Line T access for downtown trips\n• Parker Street food scene is legendary\n\n**Student Life**:\n• 60% of NEU students live here\n• Vibrant social scene with lots of student housing\n• Great for meeting other students\n\n**Cost Range**: $550-1000 depending on setup\n\n**Trade-offs**:\n• Can be noisy on weekends\n• Limited parking options\n• But you're in the heart of student life!\n\nWould you like me to help you find specific Mission Hill listings or compare it with other neighborhoods?"
+        
+        elif any(word in message_lower for word in ['roxbury', 'rox']):
+            return "🏘️ **Roxbury** is becoming increasingly popular with students for several compelling reasons:\n\n**Affordability**:\n• Significantly cheaper than other areas ($600-900)\n• Great value for the location\n\n**Accessibility**:\n• Orange Line T access to downtown and NEU\n• Multiple bus routes\n• Easy commute to campus\n\n**Neighborhood Perks**:\n• Dudley Square shopping and dining\n• Franklin Park for outdoor activities\n• Growing student-friendly developments\n\n**Student Appeal**:\n• More diverse and authentic Boston experience\n• Up-and-coming area with new developments\n• Great for students who want value and character\n\nWould you like me to search for current Roxbury listings or tell you more about specific areas within Roxbury?"
+        
+        elif any(word in message_lower for word in ['budget', 'cheap', 'affordable', 'under']):
+            return "💰 **Budget-friendly housing in Boston** - I understand the challenge! Here's my AI-powered analysis:\n\n**Best Budget Strategies**:\n• **Roommate situations**: Split 2-3BR apartments ($450-600 each)\n• **Mission Hill group houses**: $500-600 per person\n• **Roxbury shared spaces**: $600-800 per person\n• **JP student housing**: $700-900 per person\n\n**Money-Saving Tips**:\n• Look for 'utilities included' to avoid extra costs\n• Consider longer leases for better rates\n• Check for student discounts\n• Negotiate when possible\n\n**My Recommendation**: Start with Mission Hill roommate situations - you get proximity to campus AND affordability.\n\nWhat's your target budget? I can give you specific recommendations!"
+        
+        elif any(word in message_lower for word in ['search', 'find', 'looking', 'need', 'want']):
+            return "🔍 **AI-Powered Housing Search** - I'm here to help you find the perfect place!\n\n**I can help you with**:\n• Finding apartments in specific neighborhoods\n• Budget-friendly options near NEU\n• Roommate matching and group housing\n• Neighborhood comparisons and insights\n• Amenity-based searches (laundry, parking, etc.)\n\n**To get started, tell me**:\n• Your budget range\n• Preferred neighborhoods\n• Must-have amenities\n• Timeline for moving\n\nI'll search our database and give you personalized recommendations based on your criteria. What are you looking for?"
+        
+        else:
+            return "🤖 **AI Assistant Response**: Hi! I'm RoomScout AI, your intelligent Boston housing assistant. I use advanced language processing to understand your housing needs and provide personalized recommendations.\n\n**How I can help**:\n• **Smart Search**: I analyze your requirements and find matching listings\n• **Neighborhood Insights**: AI-powered analysis of Boston areas\n• **Budget Optimization**: Machine learning to find the best value\n• **Personalized Advice**: Context-aware recommendations\n\n**My AI capabilities**:\n• Natural language understanding of your housing needs\n• Real-time database searching and filtering\n• Predictive analysis of neighborhood trends\n• Intelligent matching of preferences to available listings\n\nWhat would you like to know about Boston housing? I'm here to help with any questions!"
+    
     def _generate_housing_redirect_response(self, message: str) -> str:
         """Generates a response that redirects a non-housing query to housing topics."""
         message_lower = message.lower()
@@ -1172,7 +1452,7 @@ class RoomScoutPipeline:
             response = requests.get(
                 f"{express_api_url}/api/housing",
                 params=params,
-                timeout=10
+                timeout=30  # Increased from 10 to 30 seconds
             )
             
             if response.status_code == 200:
@@ -1292,7 +1572,14 @@ class RoomScoutPipeline:
             # Handle location criteria
             location = search_criteria.get('location', {})
             if location.get('neighborhoods'):
-                params['location'] = location['neighborhoods']
+                # Search in both neighborhood and address fields
+                search_terms = location['neighborhoods']
+                if isinstance(search_terms, list):
+                    # If it's a list, join with OR logic
+                    search_query = ' '.join(search_terms)
+                else:
+                    search_query = str(search_terms)
+                params['search'] = search_query
             
             # Handle room type criteria
             room_type = search_criteria.get('room_type', {})
@@ -1311,7 +1598,7 @@ class RoomScoutPipeline:
             response = requests.get(
                 f"{express_api_url}/api/housing",
                 params=params,
-                timeout=10
+                timeout=30  # Increased from 10 to 30 seconds
             )
             
             if response.status_code == 200:
@@ -1418,6 +1705,321 @@ class RoomScoutPipeline:
         
         return suggestions[:3]
 
+    def save_extracted_listing_to_db(self, extracted_data: Dict[str, Any], original_message: str, user_id: str = None) -> Dict[str, Any]:
+        """
+        Save extracted listing to database via Express API
+        """
+        try:
+            # Prepare listing data for database storage
+            listing_data = {
+                "title": f"Housing Listing - {extracted_data.get('location', 'Boston')}",
+                "description": original_message[:200] + "..." if len(original_message) > 200 else original_message,
+                "price": self._extract_price_number(extracted_data.get('rent_price', '')),
+                "rentType": "monthly",
+                "location": {
+                    "address": extracted_data.get('location', ''),
+                    "city": "Boston",
+                    "state": "MA",
+                    "zipCode": "02120",
+                    "neighborhood": self._extract_neighborhood(extracted_data.get('location', '')),
+                    "walkTimeToNEU": self._estimate_walk_time(extracted_data.get('location', '')),
+                    "transitTimeToNEU": self._estimate_transit_time(extracted_data.get('location', ''))
+                },
+                "bedrooms": self._extract_bedroom_count(extracted_data.get('room_type', '')),
+                "bathrooms": 1,  # Default
+                "propertyType": self._determine_property_type(extracted_data.get('room_type', '')),
+                "roomType": self._map_room_type(extracted_data.get('room_type', '')),
+                "availability": {
+                    "startDate": self._parse_availability_date(extracted_data.get('availability_date', '')),
+                    "isAvailable": True
+                },
+                "leaseTerms": {
+                    "minLease": 12,
+                    "deposit": 0,
+                    "utilitiesIncluded": "utilities" in (extracted_data.get('additional_notes', '') or '').lower()
+                },
+                "contactInfo": {
+                    "phone": extracted_data.get('contact_info', ''),
+                    "email": "",
+                    "preferredContact": "phone",
+                    "responseTime": "within_day"
+                },
+                "amenities": self._extract_amenities(extracted_data.get('additional_notes', '')),
+                "northeasternFeatures": {
+                    "shuttleAccess": False,
+                    "bikeFriendly": True,
+                    "studySpaces": False
+                },
+                "roommatePreferences": {
+                    "gender": extracted_data.get('gender_preference', 'any')
+                },
+                "source": "extracted_from_chat",
+                "extractedData": {
+                    "rent_price": extracted_data.get('rent_price', ''),
+                    "location": extracted_data.get('location', ''),
+                    "room_type": extracted_data.get('room_type', ''),
+                    "availability_date": extracted_data.get('availability_date', ''),
+                    "contact_info": extracted_data.get('contact_info', ''),
+                    "gender_preference": extracted_data.get('gender_preference', ''),
+                    "additional_notes": extracted_data.get('additional_notes', ''),
+                    "is_housing_related": True
+                },
+                "classification": "HOUSING",
+                "processingMetadata": {
+                    "originalMessage": original_message,
+                    "extractionMethod": "hybrid",
+                    "confidence": 0.8,
+                    "langchainVersion": "2.1",
+                    "validationErrors": [],
+                    "needsReview": False
+                },
+                "confidence": 0.8,
+                "isVerified": False,
+                "status": "active",
+                "images": [],
+                "views": 0,
+                "favorites": [],
+                "tags": ["ai-extracted", "whatsapp"],
+                "createdAt": datetime.now().isoformat(),
+                "updatedAt": datetime.now().isoformat()
+            }
+            
+            # Save to database via Express API with retry logic
+            express_api_url = os.getenv('EXPRESS_API_URL', 'http://localhost:5000')
+            logger.info(f"💾 Attempting to save listing to database via {express_api_url}/api/housing/ai-extracted")
+            logger.info(f"📊 Listing data: {json.dumps(listing_data, indent=2)}")
+            
+            # Retry logic with exponential backoff
+            max_retries = 3
+            base_delay = 1  # seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    response = requests.post(
+                        f"{express_api_url}/api/housing/ai-extracted",
+                        json=listing_data,
+                        timeout=30,
+                        headers={'Content-Type': 'application/json'}
+                    )
+                    
+                    logger.info(f"📡 Database save response (attempt {attempt + 1}): {response.status_code}")
+                    logger.info(f"📄 Response content: {response.text[:500]}")
+                    
+                    if response.status_code == 201 or response.status_code == 200:
+                        saved_listing = response.json()
+                        logger.info(f"✅ Successfully saved extracted listing to database: {saved_listing.get('listing', 'unknown')}")
+                        return {
+                            "success": True,
+                            "listing_id": saved_listing.get('listing'),
+                            "message": "Listing saved successfully"
+                        }
+                    elif response.status_code == 429:  # Rate limited
+                        if attempt < max_retries - 1:
+                            delay = base_delay * (2 ** attempt)  # Exponential backoff
+                            logger.warning(f"⚠️ Rate limited (429), retrying in {delay} seconds...")
+                            time.sleep(delay)
+                            continue
+                        else:
+                            logger.error(f"❌ Rate limit exceeded after {max_retries} attempts")
+                            return {
+                                "success": False,
+                                "error": "Rate limit exceeded - please try again later"
+                            }
+                    else:
+                        logger.error(f"❌ Failed to save listing: {response.status_code} - {response.text}")
+                        return {
+                            "success": False,
+                            "error": f"Database save failed: {response.status_code} - {response.text}"
+                        }
+                        
+                except requests.exceptions.RequestException as e:
+                    if attempt < max_retries - 1:
+                        delay = base_delay * (2 ** attempt)
+                        logger.warning(f"⚠️ Request failed (attempt {attempt + 1}), retrying in {delay} seconds: {e}")
+                        time.sleep(delay)
+                        continue
+                    else:
+                        logger.error(f"❌ Request failed after {max_retries} attempts: {e}")
+                        return {
+                            "success": False,
+                            "error": f"Network error: {str(e)}"
+                        }
+                
+        except Exception as e:
+            logger.error(f"Error saving extracted listing: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def _extract_price_number(self, price_str: str) -> int:
+        """Extract numeric price from price string"""
+        if not price_str:
+            return 0
+        import re
+        match = re.search(r'\$?(\d+(?:,\d{3})*)', price_str)
+        if match:
+            return int(match.group(1).replace(',', ''))
+        return 0
+    
+    def _extract_neighborhood(self, location: str) -> str:
+        """Extract neighborhood from location string"""
+        if not location:
+            return "Fenway"
+        
+        neighborhoods = [
+            "Fenway", "Roxbury", "Dorchester", "Jamaica Plain", "Allston", 
+            "Brighton", "Cambridge", "Somerville", "Medford", "Brookline",
+            "Back Bay", "South End", "North End", "Beacon Hill", "Charlestown"
+        ]
+        
+        location_lower = location.lower()
+        for neighborhood in neighborhoods:
+            if neighborhood.lower() in location_lower:
+                return neighborhood
+        
+        return "Fenway"  # Default to Fenway if no match
+    
+    def _estimate_walk_time(self, location: str) -> int:
+        """Estimate walk time to NEU based on location"""
+        if not location:
+            return 20
+        
+        location_lower = location.lower()
+        if "mission hill" in location_lower:
+            return 8
+        elif "fenway" in location_lower:
+            return 15
+        elif "back bay" in location_lower:
+            return 25
+        elif "roxbury" in location_lower:
+            return 12
+        else:
+            return 20
+    
+    def _estimate_transit_time(self, location: str) -> int:
+        """Estimate transit time to NEU based on location"""
+        if not location:
+            return 30
+        
+        location_lower = location.lower()
+        if "mission hill" in location_lower:
+            return 5
+        elif "fenway" in location_lower:
+            return 10
+        elif "back bay" in location_lower:
+            return 15
+        elif "roxbury" in location_lower:
+            return 8
+        else:
+            return 15
+    
+    def _extract_bedroom_count(self, room_type: str) -> int:
+        """Extract bedroom count from room type"""
+        if not room_type:
+            return 1
+        
+        room_type_lower = room_type.lower()
+        if "studio" in room_type_lower:
+            return 0
+        elif "1br" in room_type_lower or "1 bedroom" in room_type_lower:
+            return 1
+        elif "2br" in room_type_lower or "2 bedroom" in room_type_lower:
+            return 2
+        elif "3br" in room_type_lower or "3 bedroom" in room_type_lower:
+            return 3
+        else:
+            return 1
+    
+    def _determine_property_type(self, room_type: str) -> str:
+        """Determine property type from room type"""
+        if not room_type:
+            return "apartment"
+        
+        room_type_lower = room_type.lower()
+        if "studio" in room_type_lower:
+            return "studio"
+        elif "house" in room_type_lower:
+            return "house"
+        elif "condo" in room_type_lower:
+            return "condo"
+        else:
+            return "apartment"
+    
+    def _parse_availability_date(self, availability: str) -> str:
+        """Parse availability date string and return ISO format"""
+        if not availability:
+            return datetime.now().isoformat()
+        
+        # Simple date parsing - can be enhanced
+        availability_lower = availability.lower()
+        if "september" in availability_lower or "sept" in availability_lower:
+            return datetime(2024, 9, 1).isoformat()
+        elif "october" in availability_lower or "oct" in availability_lower:
+            return datetime(2024, 10, 1).isoformat()
+        elif "november" in availability_lower or "nov" in availability_lower:
+            return datetime(2024, 11, 1).isoformat()
+        elif "december" in availability_lower or "dec" in availability_lower:
+            return datetime(2024, 12, 1).isoformat()
+        else:
+            return datetime.now().isoformat()
+    
+    def _extract_amenities(self, notes: str) -> List[str]:
+        """Extract amenities from additional notes"""
+        if not notes:
+            return []
+        
+        amenities = []
+        notes_lower = notes.lower()
+        
+        if "furnished" in notes_lower:
+            amenities.append("furnished")
+        if "utilities" in notes_lower:
+            amenities.append("utilities_included")
+        if "parking" in notes_lower:
+            amenities.append("parking")
+        if "laundry" in notes_lower:
+            amenities.append("laundry")
+        if "gym" in notes_lower:
+            amenities.append("gym")
+        if "wifi" in notes_lower or "internet" in notes_lower:
+            amenities.append("wifi")
+        if "ac" in notes_lower or "air conditioning" in notes_lower:
+            amenities.append("ac")
+        if "heating" in notes_lower:
+            amenities.append("heating")
+        if "dishwasher" in notes_lower:
+            amenities.append("dishwasher")
+        if "pet" in notes_lower:
+            amenities.append("pet_friendly")
+        
+        return amenities
+
+    def _map_room_type(self, room_type: str) -> str:
+        """Map room type to a standardized format"""
+        if not room_type:
+            return "1BR"
+            
+        room_type_lower = room_type.lower()
+        if "studio" in room_type_lower:
+            return "studio"
+        elif "1br" in room_type_lower or "1 bedroom" in room_type_lower:
+            return "1BR"
+        elif "2br" in room_type_lower or "2 bedroom" in room_type_lower:
+            return "2BR"
+        elif "3br" in room_type_lower or "3 bedroom" in room_type_lower:
+            return "3BR"
+        elif "hall spot" in room_type_lower or "shared room" in room_type_lower:
+            return "single"  # Map hall spot to single room
+        elif "private room" in room_type_lower:
+            return "single"
+        elif "double" in room_type_lower:
+            return "double"
+        elif "triple" in room_type_lower:
+            return "triple"
+        else:
+            return "1BR"  # Default to 1BR
+
 # Initialize pipeline
 pipeline = RoomScoutPipeline()
 
@@ -1430,7 +2032,7 @@ def health_check():
         "service": "RoomScout AI Python API",
         "version": "1.0.0",
         "timestamp": datetime.now().isoformat(),
-        "development_mode": False, # Always False now
+        "development_mode": os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true',
         "model_used": MODEL_NAME if pipeline.llm else "simulated",
         "openai_configured": pipeline.ai_available,
         "ai_chains_available": pipeline.ai_available,
@@ -1473,8 +2075,8 @@ def batch_process():
             "results": results,
             "total_processed": len(results),
             "timestamp": datetime.now().isoformat(),
-            "development_mode": False, # Always False now
-            "model_used": MODEL_NAME if llm else "simulated"
+            "development_mode": os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true',
+            "model_used": MODEL_NAME if pipeline.llm else "simulated"
         })
         
     except Exception as e:
@@ -1520,9 +2122,9 @@ def get_metrics():
         "service": "RoomScout AI Python API",
         "uptime": "running",
         "version": "1.0.0",
-        "development_mode": False, # Always False now
-        "model_used": MODEL_NAME if llm else "simulated",
-        "openai_configured": llm is not None,
+        "development_mode": os.getenv('DEVELOPMENT_MODE', 'false').lower() == 'true',
+        "model_used": MODEL_NAME if pipeline.llm else "simulated",
+        "openai_configured": pipeline.llm is not None,
         "endpoints": [
             "/health",
             "/process",
@@ -1578,10 +2180,35 @@ def chat_query():
             "error": str(e)
         }), 500
 
+@app.route('/extract-and-save', methods=['POST'])
+def extract_and_save():
+    """Extract housing data and save to database"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        user_id = data.get('user_id', None)
+        
+        if not message:
+            return jsonify({"error": "No message provided"}), 400
+        
+        # Process message with extraction and database save
+        result = pipeline.process_message(message)
+        
+        return jsonify({
+            "success": True,
+            "extraction_result": result,
+            "saved_to_database": result.get("saved_to_database", False),
+            "timestamp": datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in extract and save: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     logger.info("Starting RoomScout AI Python API...")
     logger.info(f"Development mode: {False}") # Always False now
-    logger.info(f"Model: {MODEL_NAME if llm else 'simulated'}")
-    logger.info(f"OpenAI configured: {llm is not None}")
+    logger.info(f"Model: {MODEL_NAME if pipeline.llm else 'simulated'}")
+    logger.info(f"OpenAI configured: {pipeline.llm is not None}")
     logger.info("Based on Assignments 6, 7, and 8 with security hardening")
     app.run(host='0.0.0.0', port=5001, debug=True) 

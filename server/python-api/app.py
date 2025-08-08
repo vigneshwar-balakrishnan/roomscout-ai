@@ -356,29 +356,28 @@ def chat_query():
     
     try:
         data = request.get_json()
-        if not data or 'query' not in data:
-            return jsonify({'error': 'Query is required'}), 400
+        # Accept both 'query' and 'message' fields for compatibility
+        message = data.get('message') or data.get('query', '')
+        context = data.get('context', '')
+        user_id = data.get('user_id', '')
         
-        query = data['query']
-        context = data.get('context', [])
-        session_id = data.get('session_id', f"session_{int(time.time())}")
+        if not message:
+            return jsonify({'error': 'Message or query is required'}), 400
         
         if not pipeline:
             return jsonify({'error': 'Pipeline not initialized'}), 500
         
-        # Process the query
-        result = pipeline.process_message(query)
+        # Use the AI chat response generation
+        ai_result = pipeline.generate_ai_chat_response(message, context)
         
-        # Add context information
+        # Format response to match frontend expectations
         response = {
-            'success': True,
-            'session_id': session_id,
-            'query': query,
-            'result': result,
-            'context': {
-                'previous_messages': len(context),
-                'session_id': session_id
-            }
+            'response': ai_result.get('response', 'I apologize, but I encountered an error processing your request.'),
+            'type': ai_result.get('type', 'conversation'),
+            'data': ai_result.get('data'),
+            'suggestions': ai_result.get('suggestions', []),
+            'ai_generated': ai_result.get('ai_generated', False),
+            'timestamp': datetime.now().isoformat()
         }
         
         processing_time = time.time() - start_time
@@ -391,7 +390,10 @@ def chat_query():
         log_request('chat_query', processing_time, False, str(e))
         logger.error(f"Chat query error: {traceback.format_exc()}")
         return jsonify({
-            'success': False,
+            'response': "Hey! 😅 I hit a technical snag, but I'm still here to help! What kind of housing are you looking for near NEU?",
+            'type': 'error_recovery',
+            'suggestions': ["Find budget apartments", "Get neighborhood info", "Upload WhatsApp file"],
+            'ai_generated': False,
             'error': str(e)
         }), 500
 

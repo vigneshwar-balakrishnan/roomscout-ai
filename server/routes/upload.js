@@ -43,7 +43,7 @@ const pythonAPIClient = {
             const response = await axios.post(`${this.baseURL}/batch-process`, {
                 messages: messages
             }, {
-                timeout: 60000,
+                timeout: 300000,
                 headers: { 'Content-Type': 'application/json' }
             });
             console.log(`📥 LangChain batch response: ${response.status}`);
@@ -176,7 +176,7 @@ router.post('/process-file', upload.single('file'), async (req, res) => {
             
             const batchResults = await pythonAPIClient.batchProcess(batch);
             
-            if (batchResults.success) {
+            if (batchResults.results) {
                 allResults.push(...batchResults.results);
             } else {
                 console.log(`⚠️ Batch ${Math.floor(i/batchSize) + 1} failed, using fallback for this batch`);

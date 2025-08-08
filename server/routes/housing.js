@@ -679,4 +679,62 @@ router.delete('/:id/images/:imageId', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/housing/ai-extracted
+// @desc    Create housing listing from AI extraction (no auth required)
+// @access  Public
+router.post('/ai-extracted', async (req, res) => {
+  try {
+    console.log('🔍 AI-extracted endpoint called with data:', JSON.stringify(req.body, null, 2));
+    
+    // Find or create a system user for AI-extracted listings
+    let systemUser = await User.findOne({ email: 'system@roomscout.ai' });
+    console.log('🔍 System user lookup result:', systemUser ? 'Found' : 'Not found');
+    
+    if (!systemUser) {
+      console.log('🔍 Creating system user...');
+      systemUser = new User({
+        firstName: 'System',
+        lastName: 'AI',
+        email: 'system@roomscout.ai',
+        password: 'system-password-hash', // This should be properly hashed
+        isVerified: true,
+        role: 'admin'
+      });
+      await systemUser.save();
+      console.log('✅ System user created with ID:', systemUser._id);
+    } else {
+      console.log('✅ System user found with ID:', systemUser._id);
+    }
+
+    const listingData = {
+      ...req.body,
+      owner: systemUser._id, // Set the system user as owner
+      source: 'extracted_from_chat',
+      status: 'active',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    console.log('🔍 Final listing data:', JSON.stringify(listingData, null, 2));
+
+    const listing = new Housing(listingData);
+    await listing.save();
+
+    console.log('✅ Listing saved successfully with ID:', listing._id);
+
+    res.status(201).json({
+      message: 'AI-extracted listing created successfully',
+      listing: listing._id,
+      success: true
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating AI-extracted listing:', error);
+    res.status(500).json({ 
+      error: 'Failed to create AI-extracted listing',
+      details: error.message 
+    });
+  }
+});
+
 module.exports = router; 

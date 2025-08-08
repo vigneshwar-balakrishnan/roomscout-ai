@@ -156,6 +156,9 @@ export const chatAPI = {
   // New conversational chat endpoint
   chatQuery: (messageData) => api.post('/chat/chat-query', messageData),
   
+  // New extraction and save endpoint
+  extractAndSave: (messageData) => api.post('/chat/extract-and-save', messageData),
+  
   // Legacy send message endpoint (redirects to chat-query)
   sendMessage: (messageData) => api.post('/chat/send-message', messageData),
   
