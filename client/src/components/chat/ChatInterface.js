@@ -265,61 +265,42 @@ const ChatInterface = () => {
     };
 
     return (
-        <Layout className="chat-layout" style={{ background: '#FFFFFF' }}>
-            <Content className="chat-content" style={{ padding: '24px' }}>
-                <Card 
-                    className="chat-card"
-                    style={{
-                        borderRadius: '12px',
-                        border: '1px solid #E5E7EB',
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                        background: '#FFFFFF',
-                        height: 'calc(100vh - 48px)',
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}
-                    bodyStyle={{ 
-                        padding: '24px',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column'
-                    }}
-                >
+        <Layout className="chat-layout">
+            <Content className="chat-content">
+                <Card className="chat-card">
                     {/* Chat Header */}
-                    <div className="chat-header" style={{ marginBottom: '24px' }}>
+                    <div className="chat-header">
                         <Space align="center">
                             <Avatar 
                                 icon={<RobotOutlined />} 
-                                style={{ backgroundColor: '#C8102E' }}
                                 size="large"
+                                style={{ 
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                                }}
                             />
                             <div>
-                                <Title level={4} style={{ margin: 0, color: '#374151', fontWeight: 600 }}>
+                                <Title level={3} style={{ margin: 0, color: 'white', fontWeight: 700 }}>
                                     RoomScout AI
                                 </Title>
-                                <Text style={{ color: '#6B7280' }}>
-                                    Housing Assistant
+                                <Text style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '14px' }}>
+                                    Your intelligent housing assistant
                                 </Text>
                             </div>
                         </Space>
                     </div>
 
                     {/* Quick Actions */}
-                    <QuickActions onAction={handleQuickAction} />
+                    <div className="quick-actions">
+                        <div className="quick-actions-header">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <QuickActions onAction={handleQuickAction} />
+                    </div>
 
                     {/* Messages Container */}
-                    <div 
-                        className="messages-container"
-                        style={{
-                            flex: 1,
-                            overflowY: 'auto',
-                            marginBottom: '24px',
-                            padding: '16px',
-                            background: '#F9FAFB',
-                            borderRadius: '8px',
-                            border: '1px solid #E5E7EB'
-                        }}
-                    >
+                    <div className="messages-container">
                         {messages.map((message) => (
                             <ChatMessage 
                                 key={message.id} 
@@ -334,7 +315,10 @@ const ChatInterface = () => {
                                 <Avatar 
                                     icon={<RobotOutlined />} 
                                     size="small"
-                                    style={{ backgroundColor: '#C8102E' }}
+                                    style={{ 
+                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                        border: '1px solid rgba(255, 255, 255, 0.3)'
+                                    }}
                                 />
                                 <div className="typing-dots">
                                     <span></span>
@@ -356,65 +340,68 @@ const ChatInterface = () => {
 
                     {/* Upload Status */}
                     {uploadStatus && (
-                        <Alert
-                            message={uploadStatus.message}
-                            type={uploadStatus.status === 'uploading' ? 'info' : 'success'}
-                            showIcon
-                            className="upload-status"
-                            style={{ marginBottom: '16px' }}
-                        />
+                        <div className="upload-status">
+                            <Alert
+                                message={uploadStatus.message}
+                                type={uploadStatus.type}
+                                showIcon
+                                closable
+                                onClose={() => setUploadStatus(null)}
+                            />
+                        </div>
                     )}
 
                     {/* Input Area */}
                     <div className="input-area">
                         <Space.Compact style={{ width: '100%' }}>
                             <Upload
-                                beforeUpload={(file) => {
-                                    handleFileUpload(file);
-                                    return false; // Prevent default upload
-                                }}
-                                accept=".txt,.csv,.json"
+                                beforeUpload={handleFileUpload}
                                 showUploadList={false}
+                                accept=".txt,.csv"
                             >
                                 <Button 
                                     icon={<UploadOutlined />}
-                                    size="large"
-                                    style={{ 
-                                        borderColor: '#D1D5DB',
-                                        backgroundColor: '#FFFFFF',
-                                        color: '#374151'
+                                    style={{
+                                        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                                        border: '2px solid rgba(102, 126, 234, 0.2)',
+                                        borderRadius: '20px 0 0 20px',
+                                        height: '48px',
+                                        color: '#667eea',
+                                        fontWeight: 600
                                     }}
                                 >
                                     Upload
                                 </Button>
                             </Upload>
-                            
                             <TextArea
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                placeholder="Ask about housing options, upload WhatsApp files, or describe what you're looking for..."
+                                placeholder="Type your message here..."
                                 autoSize={{ minRows: 1, maxRows: 4 }}
-                                disabled={isProcessing}
-                                style={{ 
-                                    borderTopLeftRadius: 0,
-                                    borderBottomLeftRadius: 0,
-                                    resize: 'none',
-                                    borderColor: '#D1D5DB'
+                                style={{
+                                    borderRadius: '0',
+                                    border: '2px solid rgba(102, 126, 234, 0.2)',
+                                    borderLeft: 'none',
+                                    borderRight: 'none',
+                                    fontSize: '16px',
+                                    padding: '12px 16px',
+                                    resize: 'none'
                                 }}
                             />
-                            
-                            <Button
+                            <Button 
                                 type="primary"
                                 icon={<SendOutlined />}
-                                size="large"
                                 onClick={handleSendMessage}
+                                loading={isProcessing}
                                 disabled={!inputValue.trim() || isProcessing}
-                                style={{ 
-                                    backgroundColor: '#C8102E',
-                                    borderColor: '#C8102E',
-                                    borderTopLeftRadius: 0,
-                                    borderBottomLeftRadius: 0
+                                style={{
+                                    borderRadius: '0 20px 20px 0',
+                                    height: '48px',
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    border: 'none',
+                                    fontWeight: 600,
+                                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
                                 }}
                             >
                                 Send
@@ -422,10 +409,10 @@ const ChatInterface = () => {
                         </Space.Compact>
                     </div>
 
-                    {/* File Upload Hint */}
-                    <div className="upload-hint" style={{ marginTop: '12px', textAlign: 'center' }}>
-                        <Text style={{ color: '#9CA3AF', fontSize: '12px' }}>
-                            <FileTextOutlined /> Supported formats: WhatsApp .txt files, CSV, JSON
+                    {/* Upload Hint */}
+                    <div className="upload-hint">
+                        <Text style={{ color: '#64748b', fontSize: '12px' }}>
+                            💡 Tip: Upload WhatsApp chat files to extract housing listings automatically
                         </Text>
                     </div>
                 </Card>

@@ -77,66 +77,25 @@ const QuickActions = ({ onAction }) => {
     };
 
     return (
-        <div className="quick-actions-modern">
-            <div className="quick-actions-header-modern">
-                <div className="header-content">
-                    <Title level={4} style={{ margin: 0, color: '#1e3a8a', fontWeight: '700' }}>
-                        Quick Actions
-                    </Title>
-                    <Text style={{ color: '#6b7280', fontSize: '14px', fontWeight: '400' }}>
-                        Get started with common queries
-                    </Text>
-                </div>
-                <div className="header-decoration">
-                    <div className="decoration-dot" style={{ backgroundColor: '#1e3a8a' }}></div>
-                    <div className="decoration-dot" style={{ backgroundColor: '#3b82f6' }}></div>
-                    <div className="decoration-dot" style={{ backgroundColor: '#10b981' }}></div>
-                </div>
-            </div>
-            
-            <div className="quick-actions-grid-modern">
+        <div className="quick-actions-container">
+            <div className="quick-actions-grid">
                 {quickActions.map((action, index) => (
-                    <Card
+                    <div
                         key={action.key}
-                        className="quick-action-card"
+                        className={`quick-action-button ${action.key}`}
                         onClick={() => handleActionClick(action)}
-                        hoverable
                         style={{
                             background: action.gradient,
-                            border: 'none',
-                            borderRadius: '16px',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease',
-                            position: 'relative',
-                            overflow: 'hidden'
+                            cursor: 'pointer'
                         }}
                     >
-                        <div className="card-overlay"></div>
-                        <div className="card-content">
-                            <div className="action-icon" style={{ color: action.iconColor }}>
-                                {action.icon}
-                            </div>
-                            <div className="action-text">
-                                <Text style={{ 
-                                    color: action.iconColor, 
-                                    fontSize: '16px', 
-                                    fontWeight: '600',
-                                    display: 'block',
-                                    marginBottom: '4px'
-                                }}>
-                                    {action.label}
-                                </Text>
-                                <Text style={{ 
-                                    color: action.iconColor, 
-                                    fontSize: '12px',
-                                    opacity: 0.9
-                                }}>
-                                    {action.description}
-                                </Text>
-                            </div>
+                        <div className="quick-action-icon" style={{ color: action.iconColor }}>
+                            {action.icon}
                         </div>
-                        <div className="card-shine"></div>
-                    </Card>
+                        <div className="quick-action-text" style={{ color: action.iconColor }}>
+                            {action.label}
+                        </div>
+                    </div>
                 ))}
             </div>
         </div>
