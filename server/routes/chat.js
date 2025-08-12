@@ -95,6 +95,141 @@ const pythonAPIClient = {
     }
 };
 
+// ADD THIS NEW ENDPOINT - Pagination for housing search results
+router.post('/housing-pagination', async (req, res) => {
+    try {
+        const { searchCriteria, page, limit = 3 } = req.body;
+        
+        if (!searchCriteria) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Search criteria is required' 
+            });
+        }
+
+        // Build query parameters for housing search
+        const params = {
+            limit: parseInt(limit),
+            page: parseInt(page) || 1,
+            status: 'active'
+        };
+
+        // Handle budget criteria
+        if (searchCriteria.budget) {
+            if (searchCriteria.budget.min) params.priceMin = searchCriteria.budget.min;
+            if (searchCriteria.budget.max) params.priceMax = searchCriteria.budget.max;
+        }
+
+        // Handle location criteria
+        if (searchCriteria.location && searchCriteria.location.neighborhoods) {
+            const searchTerms = searchCriteria.location.neighborhoods;
+            if (Array.isArray(searchTerms)) {
+                params.search = searchTerms.join(' ');
+            } else {
+                params.search = String(searchTerms);
+            }
+        }
+
+        // Handle room type criteria
+        if (searchCriteria.room_type) {
+            if (searchCriteria.room_type.bedroom_count) {
+                params.bedrooms = searchCriteria.room_type.bedroom_count;
+            }
+            if (searchCriteria.room_type.property_types) {
+                params.propertyType = searchCriteria.room_type.property_types;
+            }
+        }
+
+        // Handle amenities
+        if (searchCriteria.amenities && searchCriteria.amenities.length > 0) {
+            params.amenities = searchCriteria.amenities;
+        }
+
+        // Make request to housing API
+        const housingResponse = await axios.get(`${process.env.BASE_URL || 'http://localhost:5000'}/api/housing`, {
+            params,
+            timeout: 30000
+        });
+
+        if (housingResponse.status === 200) {
+            const data = housingResponse.data;
+            
+            // Generate response text for the current page
+            const responseText = `🏠 **Housing Search Results - Page ${data.page} of ${data.totalPages}**\n\n`;
+            
+            // Format listings
+            let formattedListings = '';
+            data.listings.forEach((listing, index) => {
+                formattedListings += `**${index + 1}. ${listing.title || 'Housing Listing'}**\n`;
+                formattedListings += `   💰 $${listing.price || 0}/month\n`;
+                formattedListings += `   📍 ${listing.location?.neighborhood || 'Boston'}\n`;
+                formattedListings += `   🏘️ ${listing.propertyType || 'apartment'} • ${listing.bedrooms || 1}BR • ${listing.bathrooms || 1}BA\n`;
+                if (listing.amenities && listing.amenities.length > 0) {
+                    const amenities = listing.amenities.slice(0, 2);
+                    formattedListings += `   ✨ ${amenities.join(', ')}\n`;
+                }
+                formattedListings += '\n';
+            });
+
+            // Add pagination controls
+            let paginationText = '📱 **Navigation:**\n';
+            if (data.page > 1) {
+                paginationText += `   ⬅️ **Previous Page** (Page ${data.page - 1})\n`;
+            }
+            if (data.page < data.totalPages) {
+                paginationText += `   ➡️ **Next Page** (Page ${data.page + 1})\n`;
+            }
+
+            const fullResponse = responseText + formattedListings + paginationText + 
+                `\n💡 **Showing ${data.listings.length} of ${data.total} listings**\n` +
+                'Use the navigation above or ask me to show specific pages!';
+
+            // Generate suggestions based on current page
+            const suggestions = [];
+            if (data.page > 1) {
+                suggestions.push('Show previous page');
+            }
+            if (data.page < data.totalPages) {
+                suggestions.push('Show next page');
+            }
+            if (data.totalPages > 1) {
+                suggestions.push(`Go to page ${Math.min(data.page + 1, data.totalPages)}`);
+            }
+
+            res.json({
+                success: true,
+                response: fullResponse,
+                type: 'housing_search_results',
+                data: {
+                    listings: data.listings,
+                    count: data.listings.length,
+                    total: data.total,
+                    page: data.page,
+                    totalPages: data.totalPages,
+                    hasNextPage: data.page < data.totalPages,
+                    hasPrevPage: data.page > 1,
+                    search_criteria: searchCriteria
+                },
+                suggestions: suggestions,
+                ai_generated: false
+            });
+
+        } else {
+            res.status(housingResponse.status).json({
+                success: false,
+                error: 'Failed to fetch housing listings'
+            });
+        }
+
+    } catch (error) {
+        console.error('Error in housing pagination:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error during pagination'
+        });
+    }
+});
+
 // ADD THIS NEW ENDPOINT - Chat query for conversational responses
 router.post('/chat-query', async (req, res) => {
     try {

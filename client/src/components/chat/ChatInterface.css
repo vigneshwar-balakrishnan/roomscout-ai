@@ -3,6 +3,7 @@
     height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     position: relative;
+    overflow: hidden; /* Prevent body scroll */
 }
 
 .chat-layout::before {
@@ -19,11 +20,12 @@
 
 .chat-content {
     padding: 24px;
-    height: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     position: relative;
     z-index: 1;
+    box-sizing: border-box;
 }
 
 .chat-card {
@@ -36,6 +38,8 @@
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    min-height: 0; /* Important for flexbox */
+    position: relative; /* Required for absolute positioning of scroll indicator */
 }
 
 /* Modern Chat Header */
@@ -45,6 +49,7 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     position: relative;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .chat-header::after {
@@ -73,63 +78,30 @@
     font-size: 14px;
 }
 
-/* Enhanced Quick Actions */
-.quick-actions {
-    padding: 20px 32px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    position: relative;
-}
-
-.quick-actions::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
-}
-
-.quick-actions-header {
-    margin-bottom: 16px;
-    font-weight: 600;
-    color: #1e293b;
-    font-size: 16px;
-}
-
-.quick-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
-}
-
-.quick-action-button {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 16px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-}
-
-.quick-action-button:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.4);
-    background: rgba(255, 255, 255, 0.95);
-}
-
-/* Modern Messages Container */
+/* Modern Messages Container - FIXED SCROLLING */
 .messages-container {
     flex: 1;
+    height: 0; /* Critical: This forces the flex item to respect flex: 1 */
     padding: 24px 32px;
     overflow-y: auto;
+    overflow-x: hidden;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     display: flex;
     flex-direction: column;
     gap: 20px;
     position: relative;
+    min-height: 0; /* Critical for flexbox scrolling */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    /* Force scrolling to work */
+    max-height: calc(100vh - 400px); /* Fallback height */
+}
+
+/* Alternative approach if flexbox still doesn't work */
+.messages-container.fallback-scroll {
+    height: 600px !important;
+    max-height: 600px !important;
+    overflow-y: scroll !important;
 }
 
 .messages-container::before {
@@ -140,6 +112,11 @@
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+}
+
+/* Ensure messages take proper space */
+.messages-container > * {
+    flex-shrink: 0;
 }
 
 /* Enhanced Typing Indicator */
@@ -154,6 +131,7 @@
     max-width: 220px;
     border: 1px solid rgba(102, 126, 234, 0.1);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
 }
 
 .typing-dots {
@@ -200,6 +178,7 @@
     max-width: 180px;
     border: 1px solid rgba(245, 158, 11, 0.2);
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+    flex-shrink: 0;
 }
 
 /* Modern Upload Status */
@@ -208,6 +187,7 @@
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     border: 1px solid rgba(102, 126, 234, 0.1);
+    flex-shrink: 0;
 }
 
 /* Enhanced Input Area */
@@ -216,6 +196,7 @@
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     position: relative;
+    flex-shrink: 0; /* Prevent input area from shrinking */
 }
 
 .input-area::before {
@@ -269,12 +250,62 @@
     border-top: 1px solid rgba(0, 0, 0, 0.06);
     color: #64748b;
     font-size: 14px;
+    flex-shrink: 0; /* Prevent upload hint from shrinking */
+}
+
+/* Enhanced Quick Actions */
+.quick-actions {
+    padding: 20px 32px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    position: relative;
+    flex-shrink: 0; /* Prevent quick actions from shrinking */
+}
+
+.quick-actions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+}
+
+.quick-actions-header {
+    margin-bottom: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 16px;
+}
+
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+
+.quick-action-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 16px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.quick-action-button:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.4);
+    background: rgba(255, 255, 255, 0.95);
 }
 
 /* Enhanced Responsive Design */
 @media (max-width: 768px) {
     .chat-content {
         padding: 16px;
+        height: 100vh;
     }
     
     .chat-header,
@@ -312,6 +343,7 @@
     
     .chat-content {
         padding: 12px;
+        height: 100vh;
     }
     
     .chat-card {
@@ -319,24 +351,36 @@
     }
 }
 
-/* Modern Scrollbar Styling */
+/* Modern Scrollbar Styling - ENHANCED */
 .messages-container::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 .messages-container::-webkit-scrollbar-track {
     background: rgba(241, 245, 249, 0.5);
-    border-radius: 4px;
+    border-radius: 6px;
+    margin: 4px;
 }
 
 .messages-container::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 4px;
+    border-radius: 6px;
     border: 2px solid rgba(241, 245, 249, 0.5);
+    min-height: 40px;
 }
 
 .messages-container::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+.messages-container::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Firefox scrollbar styling */
+.messages-container {
+    scrollbar-width: thin;
+    scrollbar-color: #667eea rgba(241, 245, 249, 0.5);
 }
 
 /* Animation for chat card */
@@ -366,4 +410,63 @@
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     pointer-events: none;
     border-radius: 24px;
+}
+
+/* Ensure proper message spacing and scrolling */
+.messages-container .message-item {
+    margin-bottom: 16px;
+}
+
+.messages-container .message-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Auto-scroll to bottom indicator */
+.scroll-to-bottom-indicator {
+    position: absolute;
+    bottom: 140px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.scroll-to-bottom-indicator:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}
+
+.scroll-to-bottom-indicator:active {
+    transform: translateY(0) scale(0.95);
+}
+
+/* Responsive positioning for different screen sizes */
+@media (max-width: 768px) {
+    .scroll-to-bottom-indicator {
+        bottom: 120px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .scroll-to-bottom-indicator {
+        bottom: 100px;
+        right: 12px;
+        width: 36px;
+        height: 36px;
+    }
 } 

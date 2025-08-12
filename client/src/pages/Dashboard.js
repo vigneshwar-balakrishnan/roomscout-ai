@@ -163,6 +163,9 @@ const Dashboard = () => {
       setSearchQuery(value.trim());
       addRecentSearch(value.trim());
       
+      // Clear any existing filters when searching
+      setFilters({});
+      
       // Track search analytics
       try {
         await analyticsAPI.trackEvent({
@@ -200,7 +203,11 @@ const Dashboard = () => {
         }
       } catch (error) {
         console.error('Error fetching search suggestions:', error);
-        setSearchSuggestions([]);
+        // Fallback to basic suggestions based on popular searches
+        const filteredSuggestions = popularSearches.filter(search => 
+          search.toLowerCase().includes(value.toLowerCase())
+        );
+        setSearchSuggestions(filteredSuggestions.slice(0, 5));
       }
     } else {
       setSearchSuggestions([]);
@@ -370,7 +377,7 @@ const Dashboard = () => {
               </div>
               
               <Search
-                placeholder="Search by location, property type, amenities..."
+                placeholder="Search by location, property type, amenities, or description..."
                 enterButton={
                   <Button 
                     type="primary" 
@@ -385,7 +392,18 @@ const Dashboard = () => {
                 onChange={(e) => handleSearchInputChange(e.target.value)}
                 onSearch={handleSearch}
                 style={{ marginBottom: '20px' }}
+                allowClear
+                onPressEnter={(e) => handleSearch(e.target.value)}
               />
+
+              {/* Search Status */}
+              {searchQuery && (
+                <div style={{ marginBottom: '20px' }}>
+                  <Text style={{ fontSize: '14px', color: '#6B7280' }}>
+                    🔍 Searching for: <strong>{searchQuery}</strong>
+                  </Text>
+                </div>
+              )}
 
               {/* Search Suggestions */}
               {searchSuggestions.length > 0 && (

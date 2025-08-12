@@ -85,13 +85,63 @@ router.get('/', async (req, res) => {
 
     // Search functionality
     if (search) {
+      const searchRegex = { $regex: search, $options: 'i' };
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { 'location.address': { $regex: search, $options: 'i' } },
-        { 'location.neighborhood': { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { amenities: { $regex: search, $options: 'i' } }
+        { title: searchRegex },
+        { 'location.address': searchRegex },
+        { 'location.neighborhood': searchRegex },
+        { 'location.city': searchRegex },
+        { description: searchRegex },
+        { amenities: searchRegex },
+        { propertyType: searchRegex },
+        { roomType: searchRegex }
       ];
+      
+      // Handle special search patterns
+      if (search.toLowerCase().includes('near') || search.toLowerCase().includes('close')) {
+        // Search for listings near NEU
+        query['location.walkTimeToNEU'] = { $lte: 20 }; // Within 20 min walk
+      }
+      
+      if (search.toLowerCase().includes('studio')) {
+        query.bedrooms = 0;
+      }
+      
+      if (search.toLowerCase().includes('1br') || search.toLowerCase().includes('1 bedroom')) {
+        query.bedrooms = 1;
+      }
+      
+      if (search.toLowerCase().includes('2br') || search.toLowerCase().includes('2 bedroom')) {
+        query.bedrooms = 2;
+      }
+      
+      if (search.toLowerCase().includes('3br') || search.toLowerCase().includes('3 bedroom')) {
+        query.bedrooms = 3;
+      }
+      
+      if (search.toLowerCase().includes('furnished')) {
+        query.amenities = { $in: ['furnished'] };
+      }
+      
+      if (search.toLowerCase().includes('pet') || search.toLowerCase().includes('dog') || search.toLowerCase().includes('cat')) {
+        query.amenities = { $in: ['pet_friendly'] };
+      }
+      
+      if (search.toLowerCase().includes('wifi') || search.toLowerCase().includes('internet')) {
+        query.amenities = { $in: ['wifi'] };
+      }
+      
+      if (search.toLowerCase().includes('parking')) {
+        query.amenities = { $in: ['parking'] };
+      }
+      
+      if (search.toLowerCase().includes('gym')) {
+        query.amenities = { $in: ['gym'] };
+      }
+      
+      if (search.toLowerCase().includes('laundry')) {
+        query.amenities = { $in: ['laundry'] };
+      }
     }
 
     // Price filter
@@ -251,25 +301,88 @@ router.get('/stats', async (req, res) => {
 // @access  Public
 router.get('/popular-searches', async (req, res) => {
   try {
-    // For now, return static popular searches
-    // TODO: Implement actual search analytics
+    // Get popular neighborhoods
+    const popularNeighborhoods = await Housing.aggregate([
+      {
+        $match: { status: 'active' }
+      },
+      {
+        $group: {
+          _id: '$location.neighborhood',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
+    // Get popular property types
+    const popularPropertyTypes = await Housing.aggregate([
+      {
+        $match: { status: 'active' }
+      },
+      {
+        $group: {
+          _id: '$propertyType',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 3 }
+    ]);
+
+    // Get popular amenities
+    const popularAmenities = await Housing.aggregate([
+      {
+        $match: { status: 'active' }
+      },
+      {
+        $unwind: '$amenities'
+      },
+      {
+        $group: {
+          _id: '$amenities',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 3 }
+    ]);
+
+    // Combine popular searches
     const popularSearches = [
+      ...popularNeighborhoods.map(n => n._id),
+      ...popularPropertyTypes.map(p => p._id),
+      ...popularAmenities.map(a => a._id),
       'Studio near NEU',
       '2 bedroom apartment',
-      'Fenway area',
       'Pet friendly',
       'Under $2000',
       'Furnished apartment'
     ];
 
-    res.json({ 
-      success: true,
-      popularSearches 
-    });
+    // Remove duplicates and limit
+    const uniqueSearches = [...new Set(popularSearches)].slice(0, 10);
+
+    res.json({ popularSearches: uniqueSearches });
 
   } catch (error) {
     console.error('Error fetching popular searches:', error);
-    res.status(500).json({ error: 'Failed to fetch popular searches' });
+    // Fallback to default searches
+    res.json({ 
+      popularSearches: [
+        'Studio near NEU',
+        '2 bedroom apartment',
+        'Fenway area',
+        'Pet friendly',
+        'Under $2000',
+        'Furnished apartment',
+        'Back Bay',
+        'Beacon Hill',
+        'Wifi included',
+        'Parking available'
+      ]
+    });
   }
 });
 
@@ -283,14 +396,13 @@ router.get('/search-suggestions', async (req, res) => {
       return res.json({ suggestions: [] });
     }
 
-    const suggestions = await Housing.aggregate([
+    const searchQuery = q.toLowerCase();
+    
+    // Get neighborhood suggestions
+    const neighborhoodSuggestions = await Housing.aggregate([
       {
         $match: {
-          $or: [
-            { title: { $regex: q, $options: 'i' } },
-            { 'location.neighborhood': { $regex: q, $options: 'i' } },
-            { 'location.address': { $regex: q, $options: 'i' } }
-          ]
+          'location.neighborhood': { $regex: searchQuery, $options: 'i' }
         }
       },
       {
@@ -300,10 +412,71 @@ router.get('/search-suggestions', async (req, res) => {
         }
       },
       { $sort: { count: -1 } },
-      { $limit: 5 }
+      { $limit: 3 }
     ]);
 
-    res.json({ suggestions: suggestions.map(s => s._id) });
+    // Get property type suggestions
+    const propertyTypeSuggestions = await Housing.aggregate([
+      {
+        $match: {
+          propertyType: { $regex: searchQuery, $options: 'i' }
+        }
+      },
+      {
+        $group: {
+          _id: '$propertyType',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 2 }
+    ]);
+
+    // Get amenity suggestions
+    const amenitySuggestions = await Housing.aggregate([
+      {
+        $match: {
+          amenities: { $regex: searchQuery, $options: 'i' }
+        }
+      },
+      {
+        $unwind: '$amenities'
+      },
+      {
+        $match: {
+          amenities: { $regex: searchQuery, $options: 'i' }
+        }
+      },
+      {
+        $group: {
+          _id: '$amenities',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 2 }
+    ]);
+
+    // Get price range suggestions
+    let priceSuggestions = [];
+    if (searchQuery.includes('under') || searchQuery.includes('less') || searchQuery.includes('cheap')) {
+      priceSuggestions = ['Under $1500', 'Under $2000', 'Under $2500'];
+    } else if (searchQuery.includes('over') || searchQuery.includes('more') || searchQuery.includes('luxury')) {
+      priceSuggestions = ['Over $3000', 'Over $4000', 'Over $5000'];
+    }
+
+    // Combine all suggestions
+    const allSuggestions = [
+      ...neighborhoodSuggestions.map(s => s._id),
+      ...propertyTypeSuggestions.map(s => s._id),
+      ...amenitySuggestions.map(s => s._id),
+      ...priceSuggestions
+    ];
+
+    // Remove duplicates and limit to 8 suggestions
+    const uniqueSuggestions = [...new Set(allSuggestions)].slice(0, 8);
+
+    res.json({ suggestions: uniqueSuggestions });
 
   } catch (error) {
     console.error('Error fetching search suggestions:', error);

@@ -151,6 +151,12 @@ export const housingAPI = {
   getSearchSuggestions: (query) => api.get(`/housing/search-suggestions?q=${encodeURIComponent(query)}`),
 };
 
+// Housing pagination
+export const housingPaginationAPI = {
+  getHousingPage: (searchCriteria, page, limit = 3) =>
+    api.post('/chat/housing-pagination', { searchCriteria, page, limit }),
+};
+
 // Chat API endpoints
 export const chatAPI = {
   // New conversational chat endpoint

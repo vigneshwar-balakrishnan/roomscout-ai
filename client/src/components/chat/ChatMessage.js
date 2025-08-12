@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import HousingCard from '../housing/HousingCard';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import huskyAvatar from '../../assets/husky-ai-avatar.jpg';
 import './ChatMessage.css';
 
 const { Text, Paragraph } = Typography;
@@ -35,16 +36,24 @@ const getResponseTypeColor = (responseType) => {
 
 // Husky icon component
 const HuskyIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#1e3a8a"/>
-    <path d="M8 9c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" fill="white"/>
-    <path d="M12 13c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="white"/>
-    <path d="M7 8c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" fill="#3b82f6"/>
-    <path d="M17 8c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" fill="#3b82f6"/>
-  </svg>
+  <img 
+    src={huskyAvatar} 
+    alt="RoomScout AI Husky Avatar"
+    style={{
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      borderRadius: '50%',
+      display: 'block'
+    }}
+    onError={(e) => {
+      console.log('Chat message husky image failed to load');
+      e.target.style.display = 'none';
+    }}
+  />
 );
 
-const ChatMessage = ({ message, user, onSuggestionClick }) => {
+const ChatMessage = ({ message, user, onSuggestionClick, onPaginationClick }) => {
     const { user: authUser } = useAuth();
     const isUser = message.type === 'user';
     const isAI = message.type === 'ai';
@@ -207,7 +216,22 @@ const ChatMessage = ({ message, user, onSuggestionClick }) => {
                                                 padding: '0 12px'
                                             }}
                                             onClick={() => {
-                                                if (onSuggestionClick) {
+                                                // Check if this is a pagination suggestion
+                                                if (suggestion.toLowerCase().includes('page') || 
+                                                    suggestion.toLowerCase().includes('next') || 
+                                                    suggestion.toLowerCase().includes('previous')) {
+                                                    if (onPaginationClick && message.data) {
+                                                        // Extract page number from suggestion
+                                                        const pageMatch = suggestion.match(/page (\d+)/i);
+                                                        const page = pageMatch ? parseInt(pageMatch[1]) : 
+                                                                   suggestion.toLowerCase().includes('next') ? 
+                                                                   (message.data.page || 1) + 1 : 
+                                                                   suggestion.toLowerCase().includes('previous') ? 
+                                                                   (message.data.page || 1) - 1 : 1;
+                                                        
+                                                        onPaginationClick(message.data.search_criteria, page, message.data.limit || 3);
+                                                    }
+                                                } else if (onSuggestionClick) {
                                                     onSuggestionClick(suggestion);
                                                 }
                                             }}

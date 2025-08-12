@@ -3,6 +3,11 @@
     display: flex;
     margin-bottom: 20px;
     animation: messageSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0; /* Prevent message compression */
+}
+
+.chat-message:last-child {
+    margin-bottom: 0; /* Remove margin from last message */
 }
 
 .chat-message.user {
@@ -23,6 +28,8 @@
     gap: 16px;
     max-width: 85%;
     position: relative;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .message-avatar {
@@ -45,6 +52,7 @@
     flex: 1;
     min-width: 0;
     position: relative;
+    overflow: hidden; /* Prevent content overflow */
 }
 
 .message-header {

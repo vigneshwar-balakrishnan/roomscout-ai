@@ -225,8 +225,28 @@ const HousingCard = ({
           {/* Description */}
           <div className="housing-card-description">
             <Text style={{ color: '#6B7280', lineHeight: '1.5' }}>
-              {description}
+              {description && description.length > 150 
+                ? `${description.substring(0, 150)}...` 
+                : description}
             </Text>
+            {description && description.length > 150 && (
+              <Button
+                type="link"
+                size="small"
+                style={{ 
+                  padding: '4px 0', 
+                  height: 'auto', 
+                  color: '#1e3a8a',
+                  fontSize: '12px'
+                }}
+                onClick={() => {
+                  // Navigate to detail page to see full description
+                  window.location.href = `/housing/${_id}`;
+                }}
+              >
+                Read More
+              </Button>
+            )}
           </div>
 
           {/* Amenities and Features */}

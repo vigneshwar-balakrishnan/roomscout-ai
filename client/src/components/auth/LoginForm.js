@@ -277,8 +277,8 @@ const LoginForm = () => {
                 </Text>
               </div>
               <Text style={{ color: '#92400e', fontSize: '14px', lineHeight: '1.5' }}>
-                Email: ramsamy@test.com<br />
-                Password: password123
+                Email: vigneshwar.balakrishnan@gmail.com<br />
+                Password: 123456
               </Text>
             </div>
           </div>

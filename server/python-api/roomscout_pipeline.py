@@ -982,17 +982,27 @@ class RoomScoutPipeline:
                     search_criteria = parsed_criteria['search_criteria']
                     logger.info(f"🔎 Searching database with criteria: {search_criteria}")
                     
-                    listings = self._search_housing_with_criteria(search_criteria)
-                    logger.info(f"📊 Found {len(listings)} listings")
+                    search_result = self._search_housing_with_criteria(search_criteria)
+                    listings = search_result.get('listings', [])
+                    logger.info(f"📊 Found {len(listings)} listings on page {search_result.get('page', 1)} of {search_result.get('totalPages', 1)}")
                     
                     # Generate AI response about the search results
-                    response_text = self._generate_search_response_ai(message, search_criteria, listings)
+                    response_text = self._generate_search_response_ai(message, search_criteria, search_result)
                     
                     return {
                         "response": response_text,
                         "type": "housing_search_results",
-                        "data": {"listings": listings, "count": len(listings), "search_criteria": search_criteria},
-                        "suggestions": self._generate_search_suggestions(search_criteria, listings),
+                        "data": {
+                            "listings": listings, 
+                            "count": len(listings), 
+                            "total": search_result.get('total', 0),
+                            "page": search_result.get('page', 1),
+                            "totalPages": search_result.get('totalPages', 1),
+                            "hasNextPage": search_result.get('hasNextPage', False),
+                            "hasPrevPage": search_result.get('hasPrevPage', False),
+                            "search_criteria": search_criteria
+                        },
+                        "suggestions": self._generate_search_suggestions(search_criteria, search_result),
                         "ai_generated": True
                     }
                 
@@ -1078,13 +1088,38 @@ class RoomScoutPipeline:
                     listings = self._search_housing_with_criteria(search_criteria)
                     logger.info(f"📊 Found {len(listings)} listings in fallback search")
                     
-                    if listings:
-                        response_text = self._generate_search_response_dev(message, search_criteria, listings)
+                    if listings and len(listings) > 0:
+                        # Generate response about the fallback search results
+                        response_text = self._generate_search_response_dev(message, search_criteria, {
+                            'listings': listings,
+                            'total': len(listings),
+                            'page': 1,
+                            'totalPages': 1,
+                            'hasNextPage': False,
+                            'hasPrevPage': False
+                        })
+                        
                         return {
                             "response": response_text,
                             "type": "housing_search_results",
-                            "data": {"listings": listings, "count": len(listings), "search_criteria": search_criteria},
-                            "suggestions": self._generate_search_suggestions(search_criteria, listings),
+                            "data": {
+                                "listings": listings, 
+                                "count": len(listings),
+                                "total": len(listings),
+                                "page": 1,
+                                "totalPages": 1,
+                                "hasNextPage": False,
+                                "hasPrevPage": False,
+                                "search_criteria": search_criteria
+                            },
+                            "suggestions": self._generate_search_suggestions(search_criteria, {
+                                'listings': listings,
+                                'total': len(listings),
+                                'page': 1,
+                                'totalPages': 1,
+                                'hasNextPage': False,
+                                'hasPrevPage': False
+                            }),
                             "ai_generated": False
                         }
             except Exception as e:
@@ -1236,16 +1271,26 @@ class RoomScoutPipeline:
             if parsed_criteria.get('query_type') == 'HOUSING_SEARCH':
                 # Search for housing based on AI-extracted criteria
                 search_criteria = parsed_criteria['search_criteria']
-                listings = self._search_housing_with_criteria(search_criteria)
+                search_result = self._search_housing_with_criteria(search_criteria)
+                listings = search_result.get('listings', [])
                 
                 # Generate AI response about the search results
-                response_text = self._generate_search_response_ai(message, search_criteria, listings)
+                response_text = self._generate_search_response_ai(message, search_criteria, search_result)
                 
                 return {
                     "response": response_text,
                     "type": "housing_search_results",
-                    "data": {"listings": listings, "count": len(listings), "search_criteria": search_criteria},
-                    "suggestions": self._generate_search_suggestions(search_criteria, listings),
+                    "data": {
+                        "listings": listings, 
+                        "count": len(listings),
+                        "total": search_result.get('total', 0),
+                        "page": search_result.get('page', 1),
+                        "totalPages": search_result.get('totalPages', 1),
+                        "hasNextPage": search_result.get('hasNextPage', False),
+                        "hasPrevPage": search_result.get('hasPrevPage', False),
+                        "search_criteria": search_criteria
+                    },
+                    "suggestions": self._generate_search_suggestions(search_criteria, search_result),
                     "ai_generated": False,
                     "dev_mode": True
                 }
@@ -1553,12 +1598,13 @@ class RoomScoutPipeline:
             "reasoning": "Development mode parsing"
         }
 
-    def _search_housing_with_criteria(self, search_criteria: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Search housing listings based on AI-extracted criteria"""
+    def _search_housing_with_criteria(self, search_criteria: Dict[str, Any], page: int = 1, limit: int = 3) -> Dict[str, Any]:
+        """Search housing listings based on AI-extracted criteria with pagination support"""
         try:
             # Build query parameters from AI-extracted criteria
             params = {
-                'limit': 10,
+                'limit': limit,
+                'page': page,
                 'status': 'active'
             }
             
@@ -1603,18 +1649,49 @@ class RoomScoutPipeline:
             
             if response.status_code == 200:
                 data = response.json()
-                return data.get('listings', [])
+                return {
+                    'listings': data.get('listings', []),
+                    'total': data.get('total', 0),
+                    'page': data.get('page', page),
+                    'limit': data.get('limit', limit),
+                    'totalPages': data.get('totalPages', 1),
+                    'hasNextPage': data.get('page', page) < data.get('totalPages', 1),
+                    'hasPrevPage': data.get('page', page) > 1
+                }
             else:
                 logger.warning(f"Failed to fetch housing listings: {response.status_code}")
-                return []
+                return {
+                    'listings': [],
+                    'total': 0,
+                    'page': page,
+                    'limit': limit,
+                    'totalPages': 1,
+                    'hasNextPage': False,
+                    'hasPrevPage': False
+                }
                 
         except Exception as e:
             logger.error(f"Error searching housing with criteria: {e}")
-            return []
+            return {
+                'listings': [],
+                'total': 0,
+                'page': page,
+                'limit': limit,
+                'totalPages': 1,
+                'hasNextPage': False,
+                'hasPrevPage': False
+            }
 
-    def _generate_search_response_ai(self, original_query: str, search_criteria: Dict[str, Any], listings: List[Dict[str, Any]]) -> str:
-        """Use AI to generate conversational response about search results"""
+    def _generate_search_response_ai(self, original_query: str, search_criteria: Dict[str, Any], search_result: Dict[str, Any]) -> str:
+        """Use AI to generate conversational response about search results with pagination"""
         try:
+            listings = search_result.get('listings', [])
+            total = search_result.get('total', 0)
+            page = search_result.get('page', 1)
+            total_pages = search_result.get('totalPages', 1)
+            has_next = search_result.get('hasNextPage', False)
+            has_prev = search_result.get('hasPrevPage', False)
+            
             # Always try to use AI response generation when available
             if self.search_response_chain:
                 # Use AI to generate response
@@ -1623,26 +1700,39 @@ class RoomScoutPipeline:
                     "original_query": original_query,
                     "search_criteria": json.dumps(search_criteria, indent=2),
                     "result_count": len(listings),
-                    "housing_listings": json.dumps(listings[:3], indent=2)  # Send first 3 listings
+                    "total_results": total,
+                    "current_page": page,
+                    "total_pages": total_pages,
+                    "has_next_page": has_next,
+                    "has_prev_page": has_prev,
+                    "housing_listings": json.dumps(listings, indent=2)
                 })
                 return response.content
             else:
                 # Fallback to development response only if AI chains not available
                 logger.info("🔧 Generating development mode response")
-                return self._generate_search_response_dev(original_query, search_criteria, listings)
+                return self._generate_search_response_dev(original_query, search_criteria, search_result)
         except Exception as e:
             logger.error(f"Error generating search response with AI: {e}")
-            return self._generate_search_response_dev(original_query, search_criteria, listings)
+            return self._generate_search_response_dev(original_query, search_criteria, search_result)
 
-    def _generate_search_response_dev(self, original_query: str, search_criteria: Dict[str, Any], listings: List[Dict[str, Any]]) -> str:
-        """Development mode - generate smart response about search results"""
+    def _generate_search_response_dev(self, original_query: str, search_criteria: Dict[str, Any], search_result: Dict[str, Any]) -> str:
+        """Development mode - generate smart response about search results with pagination"""
+        listings = search_result.get('listings', [])
+        total = search_result.get('total', 0)
+        page = search_result.get('page', 1)
+        total_pages = search_result.get('totalPages', 1)
+        has_next = search_result.get('hasNextPage', False)
+        has_prev = search_result.get('hasPrevPage', False)
+        
         budget = search_criteria.get('budget', {})
         location = search_criteria.get('location', {})
         
         if listings and len(listings) > 0:
-            response = f"🏠 **Found {len(listings)} housing option(s) for your search!**\n\n"
+            response = f"🏠 **Found {total} housing option(s) for your search!**\n\n"
+            response += f"📄 **Page {page} of {total_pages}**\n\n"
             
-            for i, listing in enumerate(listings[:3], 1):
+            for i, listing in enumerate(listings, 1):
                 response += f"**{i}. {listing.get('title', 'Housing Listing')}**\n"
                 response += f"   💰 ${listing.get('price', 0):,}/month\n"
                 response += f"   📍 {listing.get('location', {}).get('neighborhood', 'Boston')}\n"
@@ -1652,10 +1742,18 @@ class RoomScoutPipeline:
                     response += f"   ✨ {', '.join(amenities)}\n"
                 response += "\n"
             
-            if len(listings) > 3:
-                response += f"... and {len(listings) - 3} more listings available!\n\n"
+            # Add pagination controls
+            response += "📱 **Navigation:**\n"
+            if has_prev:
+                response += f"   ⬅️ **Previous Page** (Page {page-1})\n"
+            if has_next:
+                response += f"   ➡️ **Next Page** (Page {page+1})\n"
             
-            response += "💡 **Want to see more details?** Click on any listing above or ask me to filter differently!"
+            if total_pages > 1:
+                response += f"\n💡 **Showing {len(listings)} of {total} listings**\n"
+                response += "Use the navigation above or ask me to show specific pages!"
+            else:
+                response += "\n💡 **All listings shown** - Use filters to narrow down your search!"
             
         else:
             # No results found
@@ -1679,21 +1777,39 @@ class RoomScoutPipeline:
         
         return response
 
-    def _generate_search_suggestions(self, search_criteria: Dict[str, Any], listings: List[Dict[str, Any]]) -> List[str]:
-        """Generate suggestions based on search criteria and results"""
+    def _generate_search_suggestions(self, search_criteria: Dict[str, Any], search_result: Dict[str, Any]) -> List[str]:
+        """Generate suggestions based on search criteria and results with pagination support"""
         suggestions = []
+        
+        listings = search_result.get('listings', [])
+        total = search_result.get('total', 0)
+        page = search_result.get('page', 1)
+        total_pages = search_result.get('totalPages', 1)
+        has_next = search_result.get('hasNextPage', False)
+        has_prev = search_result.get('hasPrevPage', False)
         
         budget = search_criteria.get('budget', {})
         location = search_criteria.get('location', {})
         
         if listings and len(listings) > 0:
-            suggestions.append("Show more listings")
+            # Pagination suggestions
+            if has_next:
+                suggestions.append("Show next page")
+            if has_prev:
+                suggestions.append("Show previous page")
+            if total_pages > 1:
+                suggestions.append(f"Go to page {min(page + 1, total_pages)}")
+            
+            # Search refinement suggestions
             if location.get('neighborhoods'):
                 suggestions.append("Search other neighborhoods")
             if budget.get('range_type') == 'below':
                 suggestions.append("Search higher budget")
             elif budget.get('range_type') == 'above':
                 suggestions.append("Search lower budget")
+                
+            # If we have many suggestions, limit them
+            suggestions = suggestions[:3]
         else:
             # No results found
             if budget.get('range_type') == 'below':
@@ -1703,7 +1819,7 @@ class RoomScoutPipeline:
             suggestions.append("Search different areas")
             suggestions.append("Get budget advice")
         
-        return suggestions[:3]
+        return suggestions
 
     def save_extracted_listing_to_db(self, extracted_data: Dict[str, Any], original_message: str, user_id: str = None) -> Dict[str, Any]:
         """

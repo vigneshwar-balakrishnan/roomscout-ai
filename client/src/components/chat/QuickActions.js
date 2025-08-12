@@ -83,6 +83,7 @@ const QuickActions = ({ onAction }) => {
                     <div
                         key={action.key}
                         className={`quick-action-button ${action.key}`}
+                        data-action={action.key}
                         onClick={() => handleActionClick(action)}
                         style={{
                             background: action.gradient,

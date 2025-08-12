@@ -216,9 +216,24 @@ const HousingDetail = () => {
                   <Title level={4} style={{ margin: 0, marginBottom: '12px' }}>
                     Description
                   </Title>
-                  <Text style={{ color: '#6B7280', lineHeight: '1.6' }}>
-                    {listing.description}
-                  </Text>
+                  <div style={{ 
+                    padding: '16px', 
+                    backgroundColor: '#f8f9fa', 
+                    borderRadius: '8px',
+                    border: '1px solid #e9ecef',
+                    maxHeight: '400px',
+                    overflowY: 'auto'
+                  }}>
+                    <Text style={{ 
+                      color: '#374151', 
+                      lineHeight: '1.8',
+                      fontSize: '15px',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word'
+                    }}>
+                      {listing.description}
+                    </Text>
+                  </div>
                 </div>
               )}
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Button, Upload, Typography, Space, Card, Avatar, Spin, Alert } from 'antd';
-import { SendOutlined, UploadOutlined, RobotOutlined, FileTextOutlined } from '@ant-design/icons';
+import { SendOutlined, UploadOutlined, FileTextOutlined } from '@ant-design/icons';
 import ChatMessage from './ChatMessage';
 import QuickActions from './QuickActions';
+import { chatAPI, housingPaginationAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { socket } from '../../services/socket';
-import { chatAPI } from '../../services/api';
+import huskyAvatar from '../../assets/husky-ai-avatar.jpg';
 import './ChatInterface.css';
 
 const { Content } = Layout;
@@ -20,6 +21,7 @@ const ChatInterface = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [uploadStatus, setUploadStatus] = useState(null);
     const [sessionId, setSessionId] = useState(null);
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     const messagesEndRef = useRef(null);
 
     // Initialize chat session
@@ -36,6 +38,41 @@ const ChatInterface = () => {
                     content: `Welcome to RoomScout AI! I can help you find housing by analyzing WhatsApp messages or answering your questions. Try uploading a WhatsApp chat file or ask me about housing options.`,
                     timestamp: new Date(),
                     sender: 'system'
+                },
+                {
+                    id: 'welcome2',
+                    type: 'ai',
+                    content: `Hi there! I'm your AI housing assistant. I can help you with:\n\n🏠 Finding apartments near Northeastern University\n💰 Budget-friendly housing options\n📍 Neighborhood recommendations\n👥 Roommate matching\n📱 WhatsApp chat analysis\n\nWhat would you like to know about housing in Boston?`,
+                    timestamp: new Date(),
+                    sender: 'RoomScout AI'
+                },
+                {
+                    id: 'welcome3',
+                    type: 'user',
+                    content: `Hi! I'm looking for housing near NEU. Can you help me?`,
+                    timestamp: new Date(),
+                    sender: 'User'
+                },
+                {
+                    id: 'welcome4',
+                    type: 'ai',
+                    content: `Absolutely! I'd be happy to help you find housing near Northeastern University. Let me search for some current listings in the area.\n\nI'll look for options that are:\n• Within walking distance to campus\n• In student-friendly neighborhoods\n• Within your budget range\n\nWhat's your monthly budget for rent?`,
+                    timestamp: new Date(),
+                    sender: 'RoomScout AI'
+                },
+                {
+                    id: 'welcome5',
+                    type: 'user',
+                    content: `My budget is around $800-1000 per month.`,
+                    timestamp: new Date(),
+                    sender: 'User'
+                },
+                {
+                    id: 'welcome6',
+                    type: 'ai',
+                    content: `Perfect! $800-1000/month is a great budget for NEU students. Let me search for housing options in that range.\n\nI found several listings that match your criteria:\n\n🏠 **Mission Hill** - $850/month\n📍 8 min walk to campus\n✨ Furnished, utilities included\n\n🏠 **Roxbury** - $750/month\n📍 15 min walk to campus\n✨ Private room, laundry access\n\n🏠 **Fenway** - $950/month\n📍 12 min walk to campus\n✨ Studio apartment, parking available\n\nWould you like me to show you more details about any of these options?`,
+                    timestamp: new Date(),
+                    sender: 'RoomScout AI'
                 }
             ]);
         }
@@ -68,6 +105,19 @@ const ChatInterface = () => {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    // Handle scroll events to show/hide scroll-to-bottom button
+    const handleScroll = (e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.target;
+        const isScrolledUp = scrollTop < scrollHeight - clientHeight - 100;
+        setShowScrollToBottom(isScrolledUp);
+    };
+
+    // Scroll to bottom function
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        setShowScrollToBottom(false);
+    };
 
     const handleSendMessage = async () => {
         if (!inputValue.trim() || isProcessing) return;
@@ -236,17 +286,73 @@ const ChatInterface = () => {
     };
 
     const handleQuickAction = async (action) => {
-        const actionMessage = {
-            id: `action_${Date.now()}`,
-            type: 'user',
-            content: action.prompt,
-            timestamp: new Date(),
-            sender: user?.firstName || 'User'
-        };
-
-        setMessages(prev => [...prev, actionMessage]);
+        // Only populate the input field, don't send the message automatically
         setInputValue(action.prompt);
-        await handleSendMessage();
+        
+        // Focus the input field so user can edit if needed
+        const textArea = document.querySelector('.input-area textarea');
+        if (textArea) {
+            textArea.focus();
+        }
+        
+        // Show a brief visual feedback that the action was selected
+        const actionButton = document.querySelector(`[data-action="${action.key}"]`);
+        if (actionButton) {
+            actionButton.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                actionButton.style.transform = 'scale(1)';
+            }, 150);
+        }
+    };
+
+    // Handle housing pagination
+    const handleHousingPagination = async (searchCriteria, page, limit = 3) => {
+        if (!searchCriteria) {
+            console.error('No search criteria provided for pagination');
+            return;
+        }
+
+        setIsProcessing(true);
+
+        try {
+            const response = await housingPaginationAPI.getHousingPage(searchCriteria, page, limit);
+
+            if (response.data.success) {
+                const paginationMessage = {
+                    id: `pagination_${Date.now()}`,
+                    type: 'ai',
+                    content: response.data.response,
+                    timestamp: new Date(),
+                    sender: 'RoomScout AI',
+                    responseType: response.data.type,
+                    suggestions: response.data.suggestions || [],
+                    data: response.data.data || null
+                };
+
+                setMessages(prev => [...prev, paginationMessage]);
+            } else {
+                const errorMessage = {
+                    id: `error_${Date.now()}`,
+                    type: 'error',
+                    content: 'Sorry, I encountered an error loading the next page. Please try again.',
+                    timestamp: new Date(),
+                    sender: 'system'
+                };
+                setMessages(prev => [...prev, errorMessage]);
+            }
+        } catch (error) {
+            console.error('Pagination error:', error);
+            const errorMessage = {
+                id: `error_${Date.now()}`,
+                type: 'error',
+                content: 'Sorry, I encountered an error loading the next page. Please try again.',
+                timestamp: new Date(),
+                sender: 'system'
+            };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const handleKeyPress = (e) => {
@@ -270,16 +376,36 @@ const ChatInterface = () => {
                 <Card className="chat-card">
                     {/* Chat Header */}
                     <div className="chat-header">
-                        <Space align="center">
-                            <Avatar 
-                                icon={<RobotOutlined />} 
-                                size="large"
-                                style={{ 
-                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    border: '2px solid rgba(255, 255, 255, 0.3)',
-                                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-                                }}
-                            />
+                        <Space size="large" align="center">
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                                overflow: 'hidden',
+                                border: '2px solid rgba(255, 255, 255, 0.3)'
+                            }}>
+                                {/* RoomScout AI Husky Avatar */}
+                                <img 
+                                    src={huskyAvatar} 
+                                    alt="RoomScout AI Husky Avatar"
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        borderRadius: '50%',
+                                        display: 'block'
+                                    }}
+                                    onError={(e) => {
+                                        console.log('Image failed to load, using fallback');
+                                        e.target.style.display = 'none';
+                                    }}
+                                />
+                            </div>
                             <div>
                                 <Title level={3} style={{ margin: 0, color: 'white', fontWeight: 700 }}>
                                     RoomScout AI
@@ -300,26 +426,55 @@ const ChatInterface = () => {
                     </div>
 
                     {/* Messages Container */}
-                    <div className="messages-container">
+                    <div 
+                        className="messages-container" 
+                        onScroll={handleScroll}
+                        style={{
+                            height: '600px',
+                            maxHeight: '600px',
+                            overflowY: 'auto'
+                        }}
+                    >
                         {messages.map((message) => (
                             <ChatMessage 
                                 key={message.id} 
                                 message={message}
                                 user={user}
                                 onSuggestionClick={handleSuggestionClick}
+                                onPaginationClick={handleHousingPagination}
                             />
                         ))}
                         
                         {isTyping && (
                             <div className="typing-indicator">
-                                <Avatar 
-                                    icon={<RobotOutlined />} 
-                                    size="small"
-                                    style={{ 
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        border: '1px solid rgba(255, 255, 255, 0.3)'
-                                    }}
-                                />
+                                <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                                    overflow: 'hidden'
+                                }}>
+                                    {/* Mini Husky Avatar for Typing Indicator */}
+                                    <img 
+                                        src={huskyAvatar} 
+                                        alt="RoomScout AI Husky Avatar"
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            borderRadius: '50%',
+                                            display: 'block'
+                                        }}
+                                        onError={(e) => {
+                                            console.log('Typing indicator image failed to load');
+                                            e.target.style.display = 'none';
+                                        }}
+                                    />
+                                </div>
                                 <div className="typing-dots">
                                     <span></span>
                                     <span></span>
@@ -337,6 +492,16 @@ const ChatInterface = () => {
 
                         <div ref={messagesEndRef} />
                     </div>
+
+                    {/* Scroll to Bottom Button */}
+                    {showScrollToBottom && (
+                        <div className="scroll-to-bottom-indicator" onClick={scrollToBottom}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M7 13l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M7 6l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </div>
+                    )}
 
                     {/* Upload Status */}
                     {uploadStatus && (
@@ -413,6 +578,11 @@ const ChatInterface = () => {
                     <div className="upload-hint">
                         <Text style={{ color: '#64748b', fontSize: '12px' }}>
                             💡 Tip: Upload WhatsApp chat files to extract housing listings automatically
+                            {inputValue && inputValue.length > 50 && (
+                                <span style={{ display: 'block', marginTop: '4px', color: '#10b981' }}>
+                                    ✏️ You can edit this text before sending
+                                </span>
+                            )}
                         </Text>
                     </div>
                 </Card>

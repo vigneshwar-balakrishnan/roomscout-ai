@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, Typography, Divider, Alert } from 'antd';
-import { MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { Form, Input, Button, Typography, Divider, Row, Col } from 'antd';
+import { MailOutlined, ArrowLeftOutlined, HomeOutlined, SearchOutlined, MessageOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
@@ -25,193 +25,257 @@ const ForgotPassword = () => {
   return (
     <div style={{ 
       minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #C8102E 0%, #A00020 100%)',
-      padding: '20px'
+      display: 'flex',
+      background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e40af 100%)',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      <Card 
-        className="neu-card"
-        style={{ 
-          width: '100%', 
-          maxWidth: '450px',
-          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
-          borderRadius: '12px',
-          border: 'none',
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)'
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <Title level={2} style={{ 
-            color: '#C8102E', 
-            marginBottom: '8px',
-            fontWeight: '600',
-            fontSize: '28px'
-          }}>
-            Reset Password
-          </Title>
-          <Text style={{ 
-            color: '#666',
-            fontSize: '14px',
-            fontWeight: '400'
-          }}>
-            Enter your email to receive reset instructions
-          </Text>
-        </div>
-
-        {emailSent ? (
-          <div style={{ textAlign: 'center' }}>
+      {/* Background Pattern */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+        opacity: 0.3
+      }} />
+      
+      <Row style={{ width: '100%', height: '100vh' }}>
+        {/* Left Side - Hero Section */}
+        <Col xs={0} lg={14} style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'center', 
+          padding: '60px',
+          color: 'white',
+          position: 'relative',
+          zIndex: 2
+        }}>
+          <div style={{ maxWidth: '600px' }}>
             <div style={{ 
-              marginBottom: '24px',
-              padding: '20px',
-              backgroundColor: 'rgba(82, 196, 26, 0.1)',
-              borderRadius: '8px',
-              border: '1px solid rgba(82, 196, 26, 0.2)'
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '32px',
+              fontSize: '48px',
+              fontWeight: '700'
             }}>
-              <MailOutlined style={{ 
-                fontSize: '48px', 
-                color: '#52c41a',
-                marginBottom: '16px'
-              }} />
-              <Title level={4} style={{ color: '#52c41a', marginBottom: '8px' }}>
-                Email Sent!
-              </Title>
-              <Text style={{ color: '#666', fontSize: '14px' }}>
-                We've sent password reset instructions to your email address.
-                Please check your inbox and follow the link to reset your password.
-              </Text>
+              <HomeOutlined style={{ marginRight: '16px', color: '#fbbf24' }} />
+              RoomScout AI
             </div>
             
-            <div style={{ marginTop: '24px' }}>
-              <Link to="/login">
-                <Button 
-                  type="primary"
-                  icon={<ArrowLeftOutlined />}
-                  style={{ 
-                    backgroundColor: '#C8102E',
-                    borderColor: '#C8102E',
-                    borderRadius: '8px',
-                    height: '40px',
-                    padding: '0 24px'
-                  }}
-                >
-                  Back to Login
-                </Button>
-              </Link>
+            <Title level={1} style={{ 
+              color: 'white', 
+              marginBottom: '24px',
+              fontSize: '56px',
+              fontWeight: '800',
+              lineHeight: '1.1'
+            }}>
+              Reset Your
+              <br />
+              <span style={{ color: '#fbbf24' }}>Password</span>
+            </Title>
+            
+            <Paragraph style={{ 
+              fontSize: '20px', 
+              color: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: '40px',
+              lineHeight: '1.6'
+            }}>
+              Don't worry! We'll help you get back into your account. 
+              Enter your email and we'll send you reset instructions.
+            </Paragraph>
+            
+            <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <SearchOutlined style={{ fontSize: '24px', color: '#fbbf24' }} />
+                <Text style={{ color: 'white', fontSize: '16px' }}>Smart Search</Text>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <MessageOutlined style={{ fontSize: '24px', color: '#fbbf24' }} />
+                <Text style={{ color: 'white', fontSize: '16px' }}>AI Assistant</Text>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <HomeOutlined style={{ fontSize: '24px', color: '#fbbf24' }} />
+                <Text style={{ color: 'white', fontSize: '16px' }}>Verified Listings</Text>
+              </div>
             </div>
           </div>
-        ) : (
-          <>
-            <Form
-              name="forgotPassword"
-              onFinish={onFinish}
-              autoComplete="off"
-              layout="vertical"
-              size="large"
-              style={{ marginBottom: '24px' }}
-            >
-              <Form.Item
-                name="email"
-                rules={[
-                  { required: true, message: 'Please enter your email!' },
-                  { type: 'email', message: 'Please enter a valid email!' }
-                ]}
-              >
-                <Input
-                  prefix={<MailOutlined style={{ color: '#999' }} />}
-                  placeholder="Email address"
-                  className="neu-input"
-                  style={{
-                    height: '48px',
-                    borderRadius: '8px',
-                    border: '1px solid #e1e5e9',
-                    fontSize: '14px'
-                  }}
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={loading}
-                  className="neu-button-primary"
-                  style={{ 
-                    width: '100%', 
-                    height: '48px',
-                    backgroundColor: '#C8102E',
-                    borderColor: '#C8102E',
-                    borderRadius: '8px',
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    boxShadow: '0 2px 8px rgba(200, 16, 46, 0.3)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = '#B00020';
-                    e.target.style.boxShadow = '0 4px 12px rgba(200, 16, 46, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = '#C8102E';
-                    e.target.style.boxShadow = '0 2px 8px rgba(200, 16, 46, 0.3)';
-                  }}
-                >
-                  Send Reset Email
-                </Button>
-              </Form.Item>
-            </Form>
-
-            <Divider style={{ margin: '24px 0', color: '#999' }}>
-              <Text style={{ color: '#666', fontSize: '14px' }}>
-                Remember your password?
-              </Text>
-            </Divider>
-
-            <div style={{ textAlign: 'center' }}>
-              <Link to="/login">
-                <Button 
-                  type="link" 
-                  className="neu-button-secondary"
-                  style={{ 
-                    color: '#C8102E',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'rgba(200, 16, 46, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'transparent';
-                  }}
-                >
-                  Back to Login
-                </Button>
-              </Link>
-            </div>
-
-            <div style={{ 
-              marginTop: '24px', 
-              padding: '16px', 
-              backgroundColor: 'rgba(200, 16, 46, 0.05)', 
-              borderRadius: '8px',
-              border: '1px solid rgba(200, 16, 46, 0.1)'
-            }}>
-              <Text style={{ 
-                fontSize: '12px',
-                color: '#666',
-                lineHeight: '1.4'
+        </Col>
+        
+        {/* Right Side - Forgot Password Form */}
+        <Col xs={24} lg={10} style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          padding: '40px',
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          position: 'relative',
+          zIndex: 2
+        }}>
+          <div style={{ width: '100%', maxWidth: '400px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+              <Title level={2} style={{ 
+                color: '#1e3a8a', 
+                marginBottom: '8px',
+                fontWeight: '700',
+                fontSize: '32px'
               }}>
-                <strong style={{ color: '#C8102E' }}>Need help?</strong> If you don't receive the email within a few minutes, check your spam folder or contact our support team.
+                Reset Password
+              </Title>
+              <Text style={{ 
+                color: '#6b7280',
+                fontSize: '16px',
+                fontWeight: '400'
+              }}>
+                Enter your email to receive reset instructions
               </Text>
             </div>
-          </>
-        )}
-      </Card>
+
+            {emailSent ? (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ 
+                  marginBottom: '24px',
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                  borderRadius: '12px',
+                  border: '1px solid #10b981'
+                }}>
+                  <MailOutlined style={{ 
+                    fontSize: '48px', 
+                    color: '#10b981',
+                    marginBottom: '16px'
+                  }} />
+                  <Title level={4} style={{ color: '#10b981', marginBottom: '8px' }}>
+                    Email Sent!
+                  </Title>
+                  <Text style={{ color: '#065f46', fontSize: '14px' }}>
+                    We've sent password reset instructions to your email address.
+                    Please check your inbox and follow the link to reset your password.
+                  </Text>
+                </div>
+                
+                <div style={{ marginTop: '24px' }}>
+                  <Link to="/login">
+                    <Button 
+                      type="primary"
+                      icon={<ArrowLeftOutlined />}
+                      style={{ 
+                        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                        borderColor: '#1e3a8a',
+                        borderRadius: '12px',
+                        height: '48px',
+                        padding: '0 24px',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        boxShadow: '0 8px 24px rgba(30, 58, 138, 0.25)',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      Back to Login
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Form
+                  name="forgotPassword"
+                  onFinish={onFinish}
+                  autoComplete="off"
+                  layout="vertical"
+                  size="large"
+                  style={{ marginBottom: '24px' }}
+                >
+                  <Form.Item
+                    name="email"
+                    rules={[
+                      { required: true, message: 'Please enter your email!' },
+                      { type: 'email', message: 'Please enter a valid email!' }
+                    ]}
+                  >
+                    <Input
+                      prefix={<MailOutlined style={{ color: '#9ca3af' }} />}
+                      placeholder="Email address"
+                      style={{
+                        height: '56px',
+                        borderRadius: '12px',
+                        border: '2px solid #e5e7eb',
+                        fontSize: '16px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        transition: 'all 0.3s ease'
+                      }}
+                    />
+                  </Form.Item>
+
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={loading}
+                      style={{
+                        width: '100%',
+                        height: '56px',
+                        borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
+                        border: 'none',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        boxShadow: '0 8px 24px rgba(30, 58, 138, 0.25)',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      Send Reset Email
+                    </Button>
+                  </Form.Item>
+                </Form>
+
+                <Divider style={{ color: '#9ca3af', fontSize: '14px' }}>
+                  Remember your password?
+                </Divider>
+
+                <Button
+                  type="default"
+                  style={{
+                    width: '100%',
+                    height: '56px',
+                    borderRadius: '12px',
+                    border: '2px solid #1e3a8a',
+                    color: '#1e3a8a',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <Link to="/login" style={{ color: 'inherit', textDecoration: 'none' }}>
+                    Back to Login
+                  </Link>
+                </Button>
+
+                <div style={{ 
+                  marginTop: '32px', 
+                  padding: '20px',
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                  borderRadius: '12px',
+                  border: '1px solid #3b82f6'
+                }}>
+                  <Text style={{ 
+                    fontSize: '14px',
+                    color: '#1e40af',
+                    lineHeight: '1.5'
+                  }}>
+                    <strong style={{ color: '#1e3a8a' }}>Need help?</strong> If you don't receive the email within a few minutes, check your spam folder or contact our support team.
+                  </Text>
+                </div>
+              </>
+            )}
+          </div>
+        </Col>
+      </Row>
     </div>
   );
 };
