@@ -119,6 +119,9 @@ export const housingAPI = {
   // Get user's saved listings
   getSavedListings: () => api.get('/housing/saved'),
 
+  // Get user's recently viewed listings
+  getRecentlyViewed: () => api.get('/housing/recently-viewed'),
+
   // Get user's created listings
   getMyListings: () => api.get('/housing/my-listings'),
 

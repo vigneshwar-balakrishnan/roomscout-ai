@@ -12,6 +12,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import NotificationCenter from './NotificationCenter';
+import huskyAvatar from '../../assets/husky-ai-avatar.jpg';
 
 const { Header: AntHeader } = Layout;
 const { Text } = Typography;
@@ -90,13 +91,22 @@ const Header = () => {
         <Link to="/dashboard" className="neu-logo">
           RoomScout AI
         </Link>
-        <Text style={{ 
-          color: 'rgba(255, 255, 255, 0.8)', 
-          marginLeft: '8px',
-          fontSize: '12px'
-        }}>
-          Northeastern University
-        </Text>
+        <img
+          src={huskyAvatar}
+          alt="Husky Logo"
+          style={{
+            width: '40px',
+            height: '40px',
+            marginLeft: '8px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: '1px solid rgba(255, 255, 255, 0.2)'
+          }}
+          onError={(e) => {
+            console.log('Husky logo failed to load');
+            e.target.style.display = 'none';
+          }}
+        />
       </div>
 
       {/* Navigation Menu */}
@@ -120,13 +130,8 @@ const Header = () => {
         <NotificationCenter />
         
         {user?.isEduEmail && (
-          <div style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            marginRight: '12px'
-          }}>
-            <Text style={{ color: 'white', fontSize: '12px' }}>
+          <div className="edu-badge">
+            <Text style={{ color: 'inherit', fontSize: '12px' }}>
               .edu Verified
             </Text>
           </div>

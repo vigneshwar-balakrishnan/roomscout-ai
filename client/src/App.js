@@ -175,9 +175,6 @@ const neuTheme = {
     Affix: {
       borderRadius: 12,
     },
-    Anchor: {
-      borderRadius: 8,
-    },
   },
 };
 

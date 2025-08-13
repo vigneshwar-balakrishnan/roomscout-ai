@@ -7,7 +7,6 @@ import {
   Button, 
   Space, 
   Tag, 
-  Divider,
   Row,
   Col,
   Statistic,
@@ -20,9 +19,7 @@ import {
   UserOutlined, 
   MailOutlined, 
   SafetyOutlined, 
-  HomeOutlined,
   DollarOutlined,
-  EnvironmentOutlined,
   CheckCircleOutlined,
   EditOutlined,
   SaveOutlined

@@ -53,6 +53,9 @@ const Dashboard = () => {
   const [showSavedListings, setShowSavedListings] = useState(false);
   const [savedListings, setSavedListings] = useState([]);
   const [savedListingsLoading, setSavedListingsLoading] = useState(false);
+  const [showRecentlyViewed, setShowRecentlyViewed] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [recentlyViewedLoading, setRecentlyViewedLoading] = useState(false);
 
   // Get current time for greeting
   const getGreeting = () => {
@@ -89,6 +92,32 @@ const Dashboard = () => {
     } finally {
       setSavedListingsLoading(false);
     }
+  };
+
+  // Load recently viewed listings
+  const loadRecentlyViewed = async () => {
+    try {
+      setRecentlyViewedLoading(true);
+      const response = await housingAPI.getRecentlyViewed();
+      
+      if (response.data.success) {
+        setRecentlyViewed(response.data.recentlyViewed || []);
+      } else {
+        message.error('Failed to load recently viewed listings');
+      }
+    } catch (error) {
+      console.error('Error loading recently viewed listings:', error);
+      message.error('Failed to load recently viewed listings');
+    } finally {
+      setRecentlyViewedLoading(false);
+    }
+  };
+
+  // Handle showing recently viewed listings
+  const handleShowRecentlyViewed = async () => {
+    setShowRecentlyViewed(true);
+    setShowSavedListings(false);
+    await loadRecentlyViewed();
   };
 
   // Load saved listings count
@@ -155,6 +184,7 @@ const Dashboard = () => {
   // Handle back to all listings
   const handleBackToAll = () => {
     setShowSavedListings(false);
+    setShowRecentlyViewed(false);
   };
 
   // Handle search with analytics tracking
@@ -563,6 +593,7 @@ const Dashboard = () => {
                     type="text"
                     icon={<EyeOutlined />}
                     style={{ width: '100%', textAlign: 'left', color: '#374151' }}
+                    onClick={handleShowRecentlyViewed}
                   >
                     Recently Viewed
                   </Button>
@@ -829,8 +860,218 @@ const Dashboard = () => {
           </div>
         )}
 
+        {/* Recently Viewed Section */}
+        {showRecentlyViewed && (
+          <div style={{ marginBottom: '32px' }}>
+            <Card
+              style={{
+                borderRadius: '12px',
+                border: '1px solid #E5E7EB',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                background: '#FFFFFF'
+              }}
+              bodyStyle={{ padding: '24px' }}
+            >
+              <div style={{ marginBottom: '20px' }}>
+                <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+                  <Space align="center">
+                    <EyeOutlined style={{ color: '#C8102E', fontSize: '20px' }} />
+                    <Title level={4} style={{ margin: 0, color: '#374151', fontWeight: 600 }}>
+                      Recently Viewed
+                    </Title>
+                    <Tag style={{ backgroundColor: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB' }}>
+                      {recentlyViewed.length} listings
+                    </Tag>
+                  </Space>
+                  <Button
+                    type="default"
+                    icon={<EyeOutlined />}
+                    onClick={handleBackToAll}
+                    style={{
+                      borderColor: '#C8102E',
+                      color: '#C8102E'
+                    }}
+                  >
+                    Back to All Listings
+                  </Button>
+                </Space>
+                <Text style={{ color: '#6B7280', display: 'block', marginTop: '8px' }}>
+                  Your recently viewed housing listings
+                </Text>
+              </div>
+
+              {recentlyViewedLoading ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Spin size="large" />
+                </div>
+              ) : recentlyViewed.length === 0 ? (
+                <Empty 
+                  description="No recently viewed listings yet"
+                  style={{ padding: '20px' }}
+                >
+                  <Text type="secondary">
+                    View some housing listings to see them here
+                  </Text>
+                </Empty>
+              ) : (
+                <Row gutter={[16, 16]}>
+                  {recentlyViewed.map((listing) => (
+                    <Col xs={24} sm={12} md={8} lg={6} key={listing._id}>
+                      <Card
+                        size="small"
+                        hoverable
+                        style={{
+                          borderRadius: '8px',
+                          border: '1px solid #E5E7EB',
+                          height: '100%',
+                          background: '#FFFFFF',
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                        }}
+                        bodyStyle={{ padding: '16px' }}
+                      >
+                        {/* Image */}
+                        <div style={{ marginBottom: '12px' }}>
+                          {listing.images && listing.images.length > 0 ? (
+                            <img
+                              src={listing.images[0].url || listing.images[0]}
+                              alt={listing.title}
+                              style={{
+                                width: '100%',
+                                height: '160px',
+                                objectFit: 'cover',
+                                borderRadius: '6px',
+                                border: '1px solid #F3F4F6'
+                              }}
+                            />
+                          ) : (
+                            <div 
+                              style={{
+                                width: '100%',
+                                height: '160px',
+                                backgroundColor: '#F9FAFB',
+                                borderRadius: '6px',
+                                border: '1px solid #E5E7EB',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#6B7280'
+                              }}
+                            >
+                              <HomeOutlined style={{ fontSize: '32px' }} />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Title */}
+                        <div style={{ marginBottom: '8px' }}>
+                          <Text strong style={{ fontSize: '16px', color: '#374151', lineHeight: '1.2' }}>
+                            {listing.title || 'Housing Listing'}
+                          </Text>
+                        </div>
+                        
+                        {/* Location and Walk Time */}
+                        <div style={{ marginBottom: '8px' }}>
+                          <Space size="small" style={{ fontSize: '14px', color: '#6B7280' }}>
+                            <EnvironmentOutlined style={{ fontSize: '12px' }} />
+                            <Text style={{ color: '#6B7280', fontSize: '14px' }}>
+                              {listing.location?.neighborhood || listing.location?.address?.split(',')[0] || 'Boston'}
+                            </Text>
+                            {listing.location?.walkTimeToNEU && (
+                              <>
+                                <Text style={{ color: '#9CA3AF' }}>•</Text>
+                                <Text style={{ color: '#6B7280', fontSize: '14px' }}>
+                                  {listing.location.walkTimeToNEU} min walk
+                                </Text>
+                              </>
+                            )}
+                          </Space>
+                        </div>
+
+                        {/* Property Details */}
+                        <div style={{ marginBottom: '8px' }}>
+                          <Space size="small" style={{ fontSize: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <HomeOutlined style={{ color: '#6B7280', fontSize: '12px' }} />
+                              <Text style={{ color: '#374151', fontSize: '12px' }}>
+                                {(listing.propertyType || 'apartment').charAt(0).toUpperCase() + (listing.propertyType || 'apartment').slice(1)}
+                              </Text>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <UserOutlined style={{ color: '#6B7280', fontSize: '12px' }} />
+                              <Text style={{ color: '#374151', fontSize: '12px' }}>
+                                {listing.roomType || 'Private'}
+                              </Text>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Text style={{ color: '#374151', fontSize: '12px' }}>
+                                {listing.bedrooms || 1} BR
+                              </Text>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Text style={{ color: '#374151', fontSize: '12px' }}>
+                                {listing.bathrooms || 1} Bath
+                              </Text>
+                            </div>
+                          </Space>
+                        </div>
+
+                        {/* Price */}
+                        <div style={{ marginBottom: '8px' }}>
+                          <Text strong style={{ color: '#C8102E', fontSize: '18px', fontWeight: 700 }}>
+                            ${listing.price ? listing.price.toLocaleString() : '0'}/month
+                          </Text>
+                        </div>
+
+                        {/* Description */}
+                        {listing.description && (
+                          <div style={{ marginBottom: '8px' }}>
+                            <Text style={{ color: '#6B7280', fontSize: '12px', lineHeight: '1.4' }}>
+                              {listing.description.length > 80 
+                                ? `${listing.description.substring(0, 80)}...` 
+                                : listing.description}
+                            </Text>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <Space style={{ width: '100%' }}>
+                          <Button
+                            type="primary"
+                            size="small"
+                            style={{ flex: 1, fontSize: '12px' }}
+                            onClick={() => {
+                              // Navigate to the listing detail page
+                              window.location.href = `/housing/${listing._id}`;
+                            }}
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            type="default"
+                            size="small"
+                            icon={<HeartOutlined />}
+                            onClick={() => handleListingAction('save', listing, true)}
+                            style={{
+                              backgroundColor: '#FFFFFF',
+                              borderColor: '#D1D5DB',
+                              color: '#374151',
+                              fontSize: '12px'
+                            }}
+                          >
+                            Save
+                          </Button>
+                        </Space>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </Card>
+          </div>
+        )}
+
         {/* Housing Listings */}
-        {!showSavedListings && (
+        {!showSavedListings && !showRecentlyViewed && (
           <div style={{ marginBottom: '32px' }}>
             <HousingList
               filters={filters}

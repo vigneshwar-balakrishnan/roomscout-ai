@@ -81,13 +81,17 @@ const ChatMessage = ({ message, user, onSuggestionClick, onPaginationClick }) =>
         if (isUser) {
             return (
                 <Avatar 
-                    icon={<UserOutlined />} 
                     style={{ 
                         backgroundColor: '#374151',
-                        border: '2px solid #e5e7eb'
+                        border: '2px solid #e5e7eb',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '16px'
                     }}
                     size="large"
-                />
+                >
+                    {message.sender?.charAt(0)?.toUpperCase() || 'U'}
+                </Avatar>
             );
         } else if (isAI || isListing) {
             return (

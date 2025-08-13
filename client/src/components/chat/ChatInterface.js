@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Layout, Input, Button, Upload, Typography, Space, Card, Avatar, Spin, Alert } from 'antd';
-import { SendOutlined, UploadOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Layout, Input, Button, Upload, Typography, Space, Card, Spin, Alert } from 'antd';
+import { SendOutlined, UploadOutlined } from '@ant-design/icons';
 import ChatMessage from './ChatMessage';
 import QuickActions from './QuickActions';
 import { chatAPI, housingPaginationAPI } from '../../services/api';
@@ -20,15 +20,13 @@ const ChatInterface = () => {
     const [isTyping, setIsTyping] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [uploadStatus, setUploadStatus] = useState(null);
-    const [sessionId, setSessionId] = useState(null);
+
     const [showScrollToBottom, setShowScrollToBottom] = useState(false);
     const messagesEndRef = useRef(null);
 
     // Initialize chat session
     useEffect(() => {
         if (user) {
-            const newSessionId = `chat_${Date.now()}_${user.id}`;
-            setSessionId(newSessionId);
             
             // Add welcome message
             setMessages([
@@ -51,7 +49,7 @@ const ChatInterface = () => {
                     type: 'user',
                     content: `Hi! I'm looking for housing near NEU. Can you help me?`,
                     timestamp: new Date(),
-                    sender: 'User'
+                    sender: user?.firstName || 'User'
                 },
                 {
                     id: 'welcome4',
@@ -65,7 +63,7 @@ const ChatInterface = () => {
                     type: 'user',
                     content: `My budget is around $800-1000 per month.`,
                     timestamp: new Date(),
-                    sender: 'User'
+                    sender: user?.firstName || 'User'
                 },
                 {
                     id: 'welcome6',

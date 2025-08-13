@@ -857,14 +857,10 @@ router.delete('/:id/images/:imageId', auth, async (req, res) => {
 // @access  Public
 router.post('/ai-extracted', async (req, res) => {
   try {
-    console.log('🔍 AI-extracted endpoint called with data:', JSON.stringify(req.body, null, 2));
-    
     // Find or create a system user for AI-extracted listings
     let systemUser = await User.findOne({ email: 'system@roomscout.ai' });
-    console.log('🔍 System user lookup result:', systemUser ? 'Found' : 'Not found');
     
     if (!systemUser) {
-      console.log('🔍 Creating system user...');
       systemUser = new User({
         firstName: 'System',
         lastName: 'AI',
@@ -874,9 +870,6 @@ router.post('/ai-extracted', async (req, res) => {
         role: 'admin'
       });
       await systemUser.save();
-      console.log('✅ System user created with ID:', systemUser._id);
-    } else {
-      console.log('✅ System user found with ID:', systemUser._id);
     }
 
     const listingData = {
@@ -888,12 +881,8 @@ router.post('/ai-extracted', async (req, res) => {
       updatedAt: new Date()
     };
 
-    console.log('🔍 Final listing data:', JSON.stringify(listingData, null, 2));
-
     const listing = new Housing(listingData);
     await listing.save();
-
-    console.log('✅ Listing saved successfully with ID:', listing._id);
 
     res.status(201).json({
       message: 'AI-extracted listing created successfully',
@@ -902,9 +891,70 @@ router.post('/ai-extracted', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error creating AI-extracted listing:', error);
+    console.error('Error creating AI-extracted listing:', error);
     res.status(500).json({ 
       error: 'Failed to create AI-extracted listing',
+      details: error.message 
+    });
+  }
+});
+
+// @route   GET /api/housing/recently-viewed
+// @desc    Get user's recently viewed listings
+// @access  Private
+router.get('/recently-viewed', auth, async (req, res) => {
+  try {
+    // Get the user's interactions
+    const user = await User.findById(req.user._id).select('interactions');
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const interactions = user.interactions || [];
+
+    // If no interactions, return empty array
+    if (interactions.length === 0) {
+      return res.json({
+        success: true,
+        recentlyViewed: [],
+        count: 0
+      });
+    }
+
+    // Filter for view interactions only
+    const viewInteractions = interactions.filter(
+      interaction => interaction.interactionType === 'view' && interaction.listingId
+    );
+
+    // If no view interactions, return empty array
+    if (viewInteractions.length === 0) {
+      return res.json({
+        success: true,
+        recentlyViewed: [],
+        count: 0
+      });
+    }
+
+    // Extract unique listing IDs from view interactions
+    const recentlyViewedListingIds = [...new Set(viewInteractions.map(i => i.listingId))];
+
+    // Fetch the listings
+    const recentlyViewedListings = await Housing.find({
+      _id: { $in: recentlyViewedListingIds },
+      status: 'active'
+    }).populate('owner', 'firstName lastName email');
+
+    res.json({
+      success: true,
+      recentlyViewed: recentlyViewedListings,
+      count: recentlyViewedListings.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching recently viewed listings:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch recently viewed listings',
       details: error.message 
     });
   }

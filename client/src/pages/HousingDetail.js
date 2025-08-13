@@ -11,8 +11,7 @@ import {
   message,
   Row,
   Col,
-  Image,
-  Divider
+  Image
 } from 'antd';
 import { 
   ArrowLeftOutlined,
@@ -21,8 +20,7 @@ import {
   PhoneOutlined,
   EnvironmentOutlined,
   HomeOutlined,
-  UserOutlined,
-  CalendarOutlined
+  UserOutlined
 } from '@ant-design/icons';
 import { housingAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,13 +42,22 @@ const HousingDetail = () => {
       const response = await housingAPI.getListing(id);
       setListing(response.data.listing);
       setIsSaved(response.data.listing.isSaved || false);
+      
+      // Track view interaction if user is authenticated
+      if (user) {
+        try {
+          await housingAPI.addInteraction(id, 'view');
+        } catch (error) {
+          console.error('Error tracking view interaction:', error);
+        }
+      }
     } catch (error) {
       console.error('Error loading listing:', error);
       message.error('Failed to load listing details');
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
     loadListing();
