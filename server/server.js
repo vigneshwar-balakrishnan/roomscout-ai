@@ -24,7 +24,11 @@ app.set('trust proxy', 1);
 
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: [
+      process.env.CLIENT_URL || "http://localhost:3000",
+      "https://roomscout-ai.netlify.app",
+      "https://roomscout-ai.netlify.app/"
+    ],
     methods: ["GET", "POST"]
   }
 });
@@ -37,7 +41,11 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/roomscout
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  origin: [
+    process.env.CLIENT_URL || "http://localhost:3000",
+    "https://roomscout-ai.netlify.app",
+    "https://roomscout-ai.netlify.app/"
+  ],
   credentials: true
 }));
 
