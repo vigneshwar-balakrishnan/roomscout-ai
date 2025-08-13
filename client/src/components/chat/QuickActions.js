@@ -1,5 +1,4 @@
 import React from 'react';
-import { Typography, Card } from 'antd';
 import { 
     HomeOutlined, 
     UploadOutlined, 
@@ -10,7 +9,7 @@ import {
 } from '@ant-design/icons';
 import './QuickActions.css';
 
-const { Text, Title } = Typography;
+
 
 const QuickActions = ({ onAction }) => {
     const quickActions = [

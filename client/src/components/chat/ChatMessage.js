@@ -1,6 +1,6 @@
 import React from 'react';
 import { Avatar, Typography, Space, Card, Tag, Button, Alert } from 'antd';
-import { UserOutlined, FileTextOutlined } from '@ant-design/icons';
+import { FileTextOutlined } from '@ant-design/icons';
 import { formatDistanceToNow } from 'date-fns';
 import HousingCard from '../housing/HousingCard';
 import { chatAPI } from '../../services/api';

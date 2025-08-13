@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
-import { Layout, Typography, Alert } from 'antd';
+import { Layout, Alert } from 'antd';
 import { useAuth } from '../contexts/AuthContext';
 import ChatInterface from '../components/chat/ChatInterface';
 import { socketService } from '../services/socket';
 import './Chat.css';
 
 const { Content } = Layout;
-const { Title } = Typography;
 
 const Chat = () => {
     const { user, token } = useAuth();

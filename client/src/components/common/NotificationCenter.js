@@ -9,8 +9,7 @@ import {
   Empty, 
   Spin,
   Tag,
-  message,
-  Divider
+  message
 } from 'antd';
 import { 
   BellOutlined, 
@@ -20,12 +19,11 @@ import {
   EyeOutlined
 } from '@ant-design/icons';
 import { notificationAPI } from '../../services/api';
-import { useAuth } from '../../contexts/AuthContext';
+
 
 const { Text, Title } = Typography;
 
 const NotificationCenter = () => {
-  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);

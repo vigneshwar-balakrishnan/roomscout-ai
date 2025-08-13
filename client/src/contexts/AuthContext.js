@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     const now = new Date();
     const timeUntilExpiry = expiry.getTime() - now.getTime();
     return timeUntilExpiry <= REFRESH_THRESHOLD;
-  }, []);
+  }, [REFRESH_THRESHOLD]);
 
   // Refresh token automatically
   const refreshAuthToken = useCallback(async () => {
